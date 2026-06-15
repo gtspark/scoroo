@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: #08090b; }
+  @keyframes blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.15; } }
+</style>
+</helmet>
+<div ref="{{ root }}" style="min-height:100vh;background:radial-gradient(1200px 700px at 50% -200px, #14161b 0%, #08090b 60%);color:#e7ebef;font-family:'Space Mono',monospace;padding:40px 36px 80px;">
+
+  <header style="max-width:1180px;margin:0 auto 44px;">
+    <div style="display:flex;align-items:center;gap:10px;color:#ff3b30;font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;">
+      <span style="width:9px;height:9px;border-radius:50%;background:#ff3b30;box-shadow:0 0 10px #ff3b30;animation:blink 1.4s steps(1) infinite;"></span>
+      DIVOOM PIXOO 64 · 64×64 RGB LED
+    </div>
+    <h1 style="font-family:'Press Start 2P',monospace;font-size:30px;line-height:1.35;margin:18px 0 14px;color:#fff;letter-spacing:1px;">LIVE SPORTS<br>SCOREBOARD CONCEPTS</h1>
+    <p style="max-width:680px;font-size:13px;line-height:1.7;color:#9aa3ad;margin:0 0 22px;">Nine fresh pixel-art posters that earn the full 4096-pixel canvas — logos as heroes, a real base/out diamond, field position, stat lines, playoff prestige, and a live momentum tracker. Each is one still frame designed for the device's ~1&nbsp;fps rhythm. Rendered nearest-neighbor at 6× so every LED is visible.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:11px;color:#cdd3da;background:#15181d;border:1px solid #262b31;border-radius:5px;padding:6px 10px;">FONT · 3×5 pixel (Tiny5-class)</span>
+      <span style="font-size:11px;color:#cdd3da;background:#15181d;border:1px solid #262b31;border-radius:5px;padding:6px 10px;">PRIMS · rect · line · poly · ellipse · gradient · bevel · glow · blit</span>
+      <span style="font-size:11px;color:#cdd3da;background:#15181d;border:1px solid #262b31;border-radius:5px;padding:6px 10px;">AA · off (crisp)</span>
+      <span style="font-size:11px;color:#ffd23f;background:#1c1a12;border:1px solid #3a3416;border-radius:5px;padding:6px 10px;">◇ Logos shown as placeholder emblems — real marks are trademarked</span>
+    </div>
+  </header>
+
+  <div style="max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:30px;">
+    <sc-for list="{{ concepts }}" as="c" hint-placeholder-count="6">
+      <section style="background:#101216;border:1px solid #20242b;border-radius:16px;padding:26px 26px 24px;">
+
+        <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="font-family:'Press Start 2P',monospace;font-size:22px;color:#3a4048;">{{ c.number }}</span>
+          <h2 style="font-family:'Press Start 2P',monospace;font-size:15px;color:#fff;margin:0;letter-spacing:1px;">{{ c.name }}</h2>
+          <span style="font-size:12px;color:#9aa3ad;">{{ c.intent }}</span>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:26px;margin:22px 0 6px;">
+          <sc-for list="{{ c.frames }}" as="f" hint-placeholder-count="3">
+            <figure style="margin:0;display:flex;flex-direction:column;gap:11px;">
+              <div style="position:relative;padding:10px;background:linear-gradient(#0a0a0c,#070708);border-radius:12px;box-shadow:0 0 0 1px #25272d, 0 14px 40px rgba(0,0,0,.55), inset 0 0 30px rgba(0,0,0,.8);">
+                <canvas width="64" height="64" data-frame="{{ f.id }}" style="display:block;width:384px;height:384px;image-rendering:pixelated;border-radius:3px;background:#000;"></canvas>
+                <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:absolute;top:10px;left:10px;width:384px;height:384px;pointer-events:none;border-radius:3px;background-image:linear-gradient(rgba(2,3,4,.32) 1px,transparent 1px),linear-gradient(90deg,rgba(2,3,4,.32) 1px,transparent 1px);background-size:6px 6px;"></div>
+                </sc-if>
+              </div>
+              <figcaption style="display:flex;align-items:center;gap:8px;font-size:11px;color:#9aa3ad;">
+                <span style="font-family:'Press Start 2P',monospace;font-size:8px;color:#0b0c0e;background:{{ f.tagBg }};padding:4px 6px;border-radius:3px;letter-spacing:1px;">{{ f.state }}</span>
+                {{ f.caption }}
+              </figcaption>
+            </figure>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:18px;border-top:1px solid #20242b;padding-top:16px;display:grid;grid-template-columns:1fr;gap:7px;">
+          <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#6b7480;letter-spacing:1px;margin-bottom:2px;">PIXEL REGIONS</div>
+          <sc-for list="{{ c.annos }}" as="a" hint-placeholder-count="4">
+            <div style="font-size:11.5px;line-height:1.5;color:#aeb6bf;display:flex;gap:9px;">
+              <span style="color:#4aa3ff;flex:none;">{{ a.k }}</span>
+              <span style="color:#8b9099;">{{ a.v }}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top:7px;font-size:11.5px;line-height:1.5;color:#ffb454;display:flex;gap:9px;">
+            <span style="flex:none;">▲ RISK</span>
+            <span style="color:#caa06a;">{{ c.risk }}</span>
+          </div>
+        </div>
+      </section>
+    </sc-for>
+  </div>
+
+  <footer style="max-width:1180px;margin:48px auto 0;font-size:11px;color:#5a626b;line-height:1.7;border-top:1px solid #20242b;padding-top:18px;">
+    Source data: ESPN public scoreboard API · polled ~60s · NBA / MLB / NFL. Each poster is a single composed 64×64 RGB frame (Pillow-ready). Motion treated as "maybe" — designed as stills with free per-rotation state swaps (blink LIVE, alternate variants).
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1260,&quot;height&quot;:900},&quot;showGrid&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+
+  FONT = {
+    '0':['###','#.#','#.#','#.#','###'], '1':['.#.','##.','.#.','.#.','###'],
+    '2':['###','..#','###','#..','###'], '3':['###','..#','.##','..#','###'],
+    '4':['#.#','#.#','###','..#','..#'], '5':['###','#..','###','..#','###'],
+    '6':['###','#..','###','#.#','###'], '7':['###','..#','..#','..#','..#'],
+    '8':['###','#.#','###','#.#','###'], '9':['###','#.#','###','..#','###'],
+    'A':['###','#.#','###','#.#','#.#'], 'B':['##.','#.#','##.','#.#','##.'],
+    'C':['###','#..','#..','#..','###'], 'D':['##.','#.#','#.#','#.#','##.'],
+    'E':['###','#..','##.','#..','###'], 'F':['###','#..','##.','#..','#..'],
+    'G':['###','#..','#.#','#.#','###'], 'H':['#.#','#.#','###','#.#','#.#'],
+    'I':['###','.#.','.#.','.#.','###'], 'J':['..#','..#','..#','#.#','###'],
+    'K':['#.#','#.#','##.','#.#','#.#'], 'L':['#..','#..','#..','#..','###'],
+    'M':['#.#','###','###','#.#','#.#'], 'N':['##.','#.#','#.#','#.#','#.#'],
+    'O':['###','#.#','#.#','#.#','###'], 'P':['###','#.#','###','#..','#..'],
+    'Q':['###','#.#','#.#','###','.##'], 'R':['###','#.#','###','##.','#.#'],
+    'S':['###','#..','###','..#','###'], 'T':['###','.#.','.#.','.#.','.#.'],
+    'U':['#.#','#.#','#.#','#.#','###'], 'V':['#.#','#.#','#.#','#.#','.#.'],
+    'W':['#.#','#.#','###','###','#.#'], 'X':['#.#','#.#','.#.','#.#','#.#'],
+    'Y':['#.#','#.#','.#.','.#.','.#.'], 'Z':['###','..#','.#.','#..','###'],
+    ' ':['...','...','...','...','...'], '-':['...','...','###','...','...'],
+    '.':['...','...','...','...','.#.'], ':':['...','.#.','...','.#.','...'],
+    '/':['..#','..#','.#.','#..','#..'], '+':['...','.#.','###','.#.','...'],
+    '!':['.#.','.#.','.#.','...','.#.'], "'":['.#.','.#.','...','...','...'],
+    '&':['.#.','#.#','.#.','#.#','.##'], '%':['#.#','..#','.#.','#..','#.#'],
+    '@':['###','#.#','###','#..','###'], '?':['###','..#','.#.','...','.#.'],
+    '\u00b7':['...','...','.#.','...','...'], ',':['...','...','...','.#.','#..'],
+    '*':['#.#','.#.','#.#','...','...'], '(':['.##','.#.','#..','.#.','.##'],
+    ')':['##.','.#.','..#','.#.','##.'], '\u00b0':['.#.','#.#','.#.','...','...'],
+  };
+
+  T = {
+    SA:  { ab:'SA', fill:'#c4ced4', edge:'#7d858c', ink:'#0b0b0b', acc:'#0b0b0b', glow:'#c4ced4' },
+    NY:  { ab:'NY', fill:'#1d6fb8', edge:'#f58426', ink:'#ffffff', acc:'#f58426', glow:'#f58426' },
+    LAD: { ab:'LA', fill:'#1565a6', edge:'#ffffff', ink:'#ffffff', acc:'#ef3e42', glow:'#5aa2dd' },
+    SF:  { ab:'SF', fill:'#2b2723', edge:'#fd5a1e', ink:'#fd5a1e', acc:'#fd5a1e', glow:'#fd5a1e' },
+    LAC: { ab:'LA', fill:'#0a84c6', edge:'#ffc20e', ink:'#ffffff', acc:'#ffc20e', glow:'#37b6ef' },
+    KC:  { ab:'KC', fill:'#c8102e', edge:'#ffb612', ink:'#ffffff', acc:'#ffb612', glow:'#ff5066' },
+  };
+
+  hex(c){
+    if (Array.isArray(c)) return c;
+    c = String(c).replace('#','');
+    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
+    const n = parseInt(c,16);
+    return [(n>>16)&255,(n>>8)&255,n&255];
+  }
+
+  makePix(w,h){
+    const self = this;
+    const buf = new Uint8ClampedArray(w*h*4);
+    const toRGB = (c)=>Array.isArray(c)?c:self.hex(c);
+    const set = (x,y,c,a=255)=>{
+      x=x|0; y=y|0;
+      if (x<0||y<0||x>=w||y>=h) return;
+      const i=(y*w+x)*4, rgb=toRGB(c);
+      if (a>=255){ buf[i]=rgb[0]; buf[i+1]=rgb[1]; buf[i+2]=rgb[2]; buf[i+3]=255; }
+      else { const af=a/255, ia=1-af; buf[i]=rgb[0]*af+buf[i]*ia; buf[i+1]=rgb[1]*af+buf[i+1]*ia; buf[i+2]=rgb[2]*af+buf[i+2]*ia; buf[i+3]=255; }
+    };
+    const fillBlock=(x,y,bw,bh,c,a=255)=>{ for(let yy=0;yy<bh;yy++) for(let xx=0;xx<bw;xx++) set(x+xx,y+yy,c,a); };
+    const rect=fillBlock;
+    const rectOutline=(x,y,bw,bh,c,a=255)=>{ for(let xx=0;xx<bw;xx++){set(x+xx,y,c,a);set(x+xx,y+bh-1,c,a);} for(let yy=0;yy<bh;yy++){set(x,y+yy,c,a);set(x+bw-1,y+yy,c,a);} };
+    const hline=(x,y,len,c,a=255)=>{ for(let i=0;i<len;i++) set(x+i,y,c,a); };
+    const vline=(x,y,len,c,a=255)=>{ for(let i=0;i<len;i++) set(x,y+i,c,a); };
+    const line=(x0,y0,x1,y1,c,a=255)=>{
+      x0|=0;y0|=0;x1|=0;y1|=0;
+      const dx=Math.abs(x1-x0), dy=-Math.abs(y1-y0);
+      let sx=x0<x1?1:-1, sy=y0<y1?1:-1, err=dx+dy;
+      for(;;){ set(x0,y0,c,a); if(x0===x1&&y0===y1)break; const e2=2*err; if(e2>=dy){err+=dy;x0+=sx;} if(e2<=dx){err+=dx;y0+=sy;} }
+    };
+    const gradV=(x,y,bw,bh,c1,c2)=>{ const a=toRGB(c1),b=toRGB(c2); for(let i=0;i<bh;i++){ const t=bh<=1?0:i/(bh-1); hline(x,y+i,bw,[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]); } };
+    const gradH=(x,y,bw,bh,c1,c2)=>{ const a=toRGB(c1),b=toRGB(c2); for(let i=0;i<bw;i++){ const t=bw<=1?0:i/(bw-1); vline(x+i,y,bh,[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]); } };
+    const glow=(x,y,bw,bh,c,layers=3)=>{ for(let l=layers;l>=1;l--){ rectOutline(x-l,y-l,bw+2*l,bh+2*l,c,Math.round(60/l)); } };
+    const disc=(cx,cy,r,c,a=255)=>{ for(let yy=-r;yy<=r;yy++) for(let xx=-r;xx<=r;xx++){ if(xx*xx+yy*yy<=r*r+r*0.6) set(cx+xx,cy+yy,c,a); } };
+    const ring=(cx,cy,r,c,a=255)=>{ for(let yy=-r;yy<=r;yy++) for(let xx=-r;xx<=r;xx++){ const d=xx*xx+yy*yy; if(d<=r*r+r*0.6 && d>(r-1)*(r-1)) set(cx+xx,cy+yy,c,a); } };
+    const diamond=(cx,cy,r,c,fill=true,a=255)=>{ for(let yy=-r;yy<=r;yy++){ const span=r-Math.abs(yy); if(fill){ for(let xx=-span;xx<=span;xx++) set(cx+xx,cy+yy,c,a); } else { set(cx-span,cy+yy,c,a); set(cx+span,cy+yy,c,a); } } };
+    const text=(x,y,str,c,scale=1,gap=1)=>{
+      let cx=x;
+      for(const chr of String(str).toUpperCase()){
+        const g=self.FONT[chr]||self.FONT['?'];
+        for(let ry=0;ry<5;ry++){ const row=g[ry]; for(let rx=0;rx<3;rx++){ if(row[rx]!=='.') fillBlock(cx+rx*scale,y+ry*scale,scale,scale,c); } }
+        cx += (3+gap)*scale;
+      }
+      return cx-x-gap*scale;
+    };
+    const textW=(str,scale=1,gap=1)=>String(str).length*(3+gap)*scale-gap*scale;
+    const textR=(xr,y,str,c,scale=1,gap=1)=>{ const wd=textW(str,scale,gap); text(xr-wd,y,str,c,scale,gap); return wd; };
+    const textC=(cx,y,str,c,scale=1,gap=1)=>{ const wd=textW(str,scale,gap); text(Math.round(cx-wd/2),y,str,c,scale,gap); return wd; };
+    const crest=(x,y,size,team)=>{
+      fillBlock(x,y,size,size,team.fill);
+      const top=Math.max(3,Math.round(size*0.34));
+      fillBlock(x,y,size,top,team.acc);
+      hline(x,y,size,'#ffffff',45); vline(x,y,size,'#ffffff',45);
+      hline(x,y+size-1,size,'#000000',95); vline(x+size-1,y,size,'#000000',95);
+      rectOutline(x,y,size,size,team.edge);
+      [[x,y],[x+size-1,y],[x,y+size-1],[x+size-1,y+size-1]].forEach(([px,py])=>set(px,py,'#000000'));
+      const wd=textW(team.ab,1);
+      text(x+Math.round((size-wd)/2), y+top+Math.round((size-top-5)/2), team.ab, team.ink, 1);
+    };
+    const triUp=(cx,cyTop,hh,c,a=255)=>{ for(let i=0;i<hh;i++) hline(cx-i,cyTop+i,2*i+1,c,a); };
+    const triDn=(cx,cyTop,hh,c,a=255)=>{ for(let i=0;i<hh;i++) hline(cx-(hh-1-i),cyTop+i,2*(hh-1-i)+1,c,a); };
+    const triR=(xLeft,cy,hh,c,a=255)=>{ for(let i=0;i<hh;i++) vline(xLeft+i,cy-(hh-1-i),2*(hh-1-i)+1,c,a); };
+    const triL=(xRight,cy,hh,c,a=255)=>{ for(let i=0;i<hh;i++) vline(xRight-i,cy-(hh-1-i),2*(hh-1-i)+1,c,a); };
+    const dots=(x,y,n,filled,c,off,gap=4)=>{ for(let i=0;i<n;i++){ const fx=x+i*gap; if(i<filled){ fillBlock(fx,y,2,2,c); } else { rectOutline(fx-0,y-0,2,2,off||'#39424b'); } } };
+    const crown=(x,y,c,edge)=>{ const g=['#.#.#','#.#.#','#####','#####']; if(edge){ for(let r=0;r<4;r++)for(let cc=0;cc<5;cc++){ if(g[r][cc]==='#'){ for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++) set(x+cc+dx,y+r+dy,edge); } } } for(let r=0;r<4;r++)for(let cc=0;cc<5;cc++){ if(g[r][cc]==='#') set(x+cc,y+r,c); } };
+    const commit=(ctx)=>{ ctx.putImageData(new ImageData(buf,w,h),0,0); };
+    return { w,h,buf,set,fillBlock,rect,rectOutline,hline,vline,line,gradV,gradH,glow,disc,ring,diamond,triUp,triDn,triR,triL,dots,crown,text,textW,textR,textC,crest,commit };
+  }
+
+  // ---------- CONCEPT 1: SCOREBUG ----------
+  drawCrestRows(p,d){
+    const T=this.T;
+    p.fillBlock(0,0,64,64,'#000000');
+    // status bar
+    p.gradV(0,0,64,8,'#181b21','#0c0e11');
+    p.hline(0,8,64,'#272c33');
+    if (d.state==='live'){
+      p.rectOutline(1,1,5,5,'#ff3b30',55);
+      p.fillBlock(2,2,3,3,'#ff3b30');
+      p.text(9,2,'Q'+d.q,'#ced4db',1);
+      p.textR(61,2,d.clock,'#ffd23f',1);
+    } else if (d.state==='pre'){
+      p.text(3,2,'TODAY','#9aa3ad',1);
+      p.textR(61,2,d.tip,'#ced4db',1);
+    } else {
+      p.textC(32,2,'FINAL','#ced4db',1);
+    }
+    const rows=[{tm:T[d.away.t],r:d.away,top:11},{tm:T[d.home.t],r:d.home,top:33}];
+    rows.forEach(({tm,r,top})=>{
+      const win = d.state==='final' && r.win;
+      if (win){ p.fillBlock(0,top-1,64,22,tm.acc,26); p.fillBlock(0,top-1,3,22,tm.acc); }
+      p.crest(3,top,18,tm);
+      if (d.state==='pre'){
+        p.textR(61,top+6,r.rec,'#e7ebef',2,1);
+      } else {
+        const sc=String(r.score), col=win?'#ffd23f':'#ffffff';
+        const wd=p.textW(sc,3,1);
+        if (win) p.glow(61-wd-1,top+2,wd+2,17,tm.glow,1);
+        p.text(61-wd,top+3,sc,col,3,1);
+        // small crown badge on the winning team's crest corner
+        if (win) p.crown(2,top-1,'#ffd23f','#241a05');
+      }
+    });
+    // bottom context bar
+    p.fillBlock(0,55,64,9,'#0c0e11'); p.hline(0,55,64,'#272c33');
+    const bcol = d.state==='final' ? '#ffd23f' : '#8b9099';
+    p.textC(32,57,d.bottom,bcol,1);
+  }
+
+  // ---------- CONCEPT 2: DIAMOND (MLB) ----------
+  drawDiamond(p,d){
+    const T=this.T, SF=T[d.away.t], LAD=T[d.home.t];
+    p.fillBlock(0,0,64,64,'#05080b');
+    if (d.state==='live'){
+      p.gradV(0,0,64,8,'#0f1820','#070b0e'); p.hline(0,8,64,'#1c2730');
+      if (d.half==='top') p.triUp(5,2,3,'#7cdc3a'); else p.triDn(5,2,3,'#7cdc3a');
+      p.text(11,2,d.inning,'#cdd3da',1);
+      p.textR(61,2,'LIVE','#ff3b30',1);
+      // team crests + scores on sides
+      p.crest(2,11,13,SF); p.textC(8,27,String(d.away.score),'#e7ebef',2,1);
+      p.crest(49,11,13,LAD); p.textC(56,27,String(d.home.score),'#e7ebef',2,1);
+      // base diamond (hero)
+      const cx=32, cy=22;
+      const second=[cx,cy-9], first=[cx+10,cy], third=[cx-10,cy], home=[cx,cy+9];
+      [[home,first],[first,second],[second,third],[third,home]].forEach(([a,b])=>p.line(a[0],a[1],b[0],b[1],'#2a4419'));
+      const base=(pos,on)=>{ if(on){ p.diamond(pos[0],pos[1],3,'#ffd23f'); p.diamond(pos[0],pos[1],4,'#ffd23f',false,80); } else { p.diamond(pos[0],pos[1],3,'#39424b',false); } };
+      base(second,d.bases[1]); base(first,d.bases[0]); base(third,d.bases[2]);
+      p.diamond(home[0],home[1],2,'#e7ebef');
+      // B / S / O strip
+      p.hline(0,38,64,'#141b22');
+      p.text(3,41,'B','#7cdc3a',1); p.dots(8,42,3,d.balls,'#7cdc3a');
+      p.text(25,41,'S','#ffd23f',1); p.dots(30,42,2,d.strikes,'#ffd23f');
+      p.text(44,41,'O','#ff5a4d',1); p.dots(49,42,2,d.outs,'#ff5a4d');
+      p.hline(0,48,64,'#141b22');
+      p.text(3,50,'P '+d.pitcher,'#8b9099',1);
+      p.fillBlock(0,55,64,9,'#0b0f13'); p.hline(0,55,64,'#1c2730');
+      p.triR(3,59,2,'#ffd23f'); p.text(8,57,'AB '+d.batter,'#cdd3da',1);
+    } else if (d.state==='pre'){
+      p.gradV(0,0,64,8,'#0f1820','#070b0e'); p.hline(0,8,64,'#1c2730');
+      p.text(3,2,'TODAY','#9aa3ad',1);
+      p.crest(3,12,16,SF); p.crest(45,12,16,LAD); p.textC(32,18,'@','#5a626b',2);
+      // probable pitchers
+      p.text(2,32,'P','#5a626b',1); p.text(7,32,d.away.pit,SF.glow,1); p.textR(61,32,d.away.prec,'#8b9099',1);
+      p.text(2,39,'P','#5a626b',1); p.text(7,39,d.home.pit,LAD.glow,1); p.textR(61,39,d.home.prec,'#8b9099',1);
+      p.hline(0,46,64,'#141b22');
+      p.textC(32,49,'FIRST PITCH '+d.tip,'#7d96a8',1);
+      p.fillBlock(0,55,64,9,'#0b0f13'); p.hline(0,55,64,'#1c2730');
+      p.textC(32,57,d.bottom,'#9aa3ad',1);
+    } else {
+      p.gradV(0,0,64,8,'#0f1820','#070b0e'); p.hline(0,8,64,'#1c2730');
+      p.textC(32,2,'FINAL','#cdd3da',1);
+      p.crest(2,12,15,SF); p.textC(8,30,String(d.away.score),'#ffffff',3,1);
+      p.crest(47,12,15,LAD); p.textC(56,30,String(d.home.score),'#ffd23f',3,1);
+      p.fillBlock(0,12,3,40,LAD.acc);
+      // line summary
+      p.hline(0,45,64,'#141b22');
+      p.text(2,47,'WP '+d.wp,'#8b9099',1);
+      p.fillBlock(0,53,64,11,'#0b0f13'); p.hline(0,53,64,'#1c2730');
+      p.textC(32,56,d.bottom,'#ffd23f',1);
+    }
+  }
+
+  // ---------- CONCEPT 3: GRIDIRON (NFL) ----------
+  drawGridiron(p,d){
+    const T=this.T, LAC=T[d.away.t], KC=T[d.home.t];
+    p.fillBlock(0,0,64,64,'#04060a');
+    if (d.state==='live'){
+      const rz=d.redzone;
+      p.gradV(0,0,64,8,'#121821','#080c10'); p.hline(0,8,64,'#1c2730');
+      p.text(3,2,'Q'+d.q,'#cdd3da',1); p.textR(61,2,d.clock,'#ffd23f',1);
+      p.fillBlock(29,2,3,3,'#ff3b30');
+      // crests at edges, scores inboard, wide center gap + divider so they never merge
+      p.crest(2,11,12,LAC); p.text(15,15,String(d.away.score),'#ffffff',2,1);
+      p.crest(50,11,12,KC); p.textR(49,15,String(d.home.score),'#ffffff',2,1);
+      p.vline(32,14,11,'#3a4048');
+      // possession: 2px ball dot under the team that has it
+      if (d.poss==='away'){ p.fillBlock(5,26,3,2,'#c98a4a'); p.set(6,26,'#ffe0a8'); }
+      else { p.fillBlock(54,26,3,2,'#c98a4a'); p.set(55,26,'#ffe0a8'); }
+      // field bar
+      const fx=2, fw=60, fy=31, fh=12;
+      p.gradV(fx,fy,fw,fh, rz?'#3a1414':'#16331a', rz?'#240c0c':'#0c220f');
+      for (let yd=0; yd<=10; yd++){ const lx=fx+Math.round(fw*yd/10); p.vline(lx,fy,fh, yd===5?'#4a6a4a':'#22402a',180); }
+      // end zones
+      p.fillBlock(fx,fy,4,fh,LAC.fill,160); p.fillBlock(fx+fw-4,fy,4,fh,KC.fill,160);
+      // first down marker (yellow)
+      const fdx=fx+Math.round(fw*d.fd/100); p.vline(fdx,fy-1,fh+2,'#ffd23f');
+      // ball position + possession chevron
+      const bx=fx+Math.round(fw*d.ball/100);
+      p.fillBlock(bx-1,fy+fh/2-1,3,3,'#6b3b1a'); p.rectOutline(bx-1,fy+fh/2-1,3,3,'#c98a4a');
+      if (d.poss==='away') p.triR(bx+3,fy+fh/2,2,'#ffffff'); else p.triL(bx-3,fy+fh/2,2,'#ffffff');
+      // down & distance
+      p.textC(32,44,d.dd, rz?'#ff5a4d':'#ffffff',2,1);
+      // bottom
+      p.fillBlock(0,55,64,9,'#0b0f13'); p.hline(0,55,64,'#1c2730');
+      if (rz){ p.textC(32,57,'RED ZONE','#ff5a4d',1); }
+      else { p.text(2,57,'BALL '+d.spot,'#8b9099',1); p.textR(61,57,':'+d.playclk,'#8b9099',1); }
+    } else if (d.state==='pre'){
+      p.gradV(0,0,64,8,'#121821','#080c10'); p.hline(0,8,64,'#1c2730');
+      p.text(3,2,'SUN','#9aa3ad',1);
+      p.crest(3,12,16,LAC); p.crest(45,12,16,KC); p.textC(32,18,'@','#5a626b',2);
+      p.text(2,33,d.away.rec,LAC.glow,1); p.textR(61,33,d.home.rec,KC.glow,1);
+      p.hline(0,40,64,'#141b22');
+      p.text(2,43,'KICKOFF','#5a626b',1); p.textR(61,42,d.tip,'#ffffff',2,1);
+      p.fillBlock(0,55,64,9,'#0b0f13'); p.hline(0,55,64,'#1c2730');
+      p.textC(32,57,d.bottom,'#9aa3ad',1);
+    } else {
+      p.gradV(0,0,64,8,'#121821','#080c10'); p.hline(0,8,64,'#1c2730');
+      p.textC(32,2,'FINAL','#cdd3da',1);
+      const win = d.home.score>d.away.score ? KC : LAC;
+      p.crest(2,12,15,LAC); p.text(20,14,String(d.away.score),'#ffffff',3,1);
+      p.crest(47,12,15,KC); p.textR(46,14,String(d.home.score),'#ffd23f',3,1);
+      p.fillBlock(0,40,64,2,win.acc,160);
+      p.text(2,46,'PASS '+d.pass,'#8b9099',1);
+      p.fillBlock(0,55,64,9,'#0b0f13'); p.hline(0,55,64,'#1c2730');
+      p.textC(32,57,d.bottom,'#ffd23f',1);
+    }
+  }
+
+  // ---------- CONCEPT 4: STAT LINE ----------
+  drawStatLine(p,d){
+    const T=this.T;
+    p.fillBlock(0,0,64,64,'#0a0c10');
+    // compact score header: [chip SA 78]  Q3  [81 NY chip]
+    p.gradV(0,0,64,10,'#171b22','#0c0f13'); p.hline(0,10,64,'#272c33');
+    const A=T[d.away.t], H=T[d.home.t];
+    p.fillBlock(2,3,3,5,A.fill); p.text(7,3,d.away.ab,'#cdd3da',1); p.text(18,3,String(d.away.score),'#ffffff',1);
+    p.textC(32,3,d.period,'#ffd23f',1);
+    p.fillBlock(59,3,3,5,H.fill); p.textR(57,3,d.home.ab,'#cdd3da',1); p.textR(46,3,String(d.home.score),'#ffffff',1);
+    p.textC(32,12,'LIVE LEADERS','#5a626b',1);
+    const rows=d.leaders, top=19, rh=15;
+    rows.forEach((L,i)=>{
+      const y=top+i*rh, tm=T[L.t];
+      p.fillBlock(2,y,5,5,tm.fill); p.rectOutline(2,y,5,5,tm.edge);
+      const nm = L.name.length>7?L.name.slice(0,7):L.name;
+      p.text(10,y,nm,'#e7ebef',1);                 // full name (top-left)
+      p.textR(61,y,String(L.val),'#ffffff',2,1);    // big value (top-right)
+      p.text(10,y+9,L.unit,tm.glow,1);              // unit (bottom-left)
+      const bw=Math.round(28*Math.min(1,L.val/L.max));
+      p.fillBlock(26,y+10,28,2,'#1d242b');           // magnitude bar (bottom, right of unit)
+      p.gradH(26,y+10,Math.max(1,bw),2,tm.fill,tm.glow);
+    });
+  }
+
+  // ---------- CONCEPT 5: PRESTIGE ----------
+  drawPrestige(p,d){
+    const T=this.T, A=T[d.away.t], H=T[d.home.t];
+    if (d.variant==='elim'){
+      p.gradV(0,0,64,64,'#1a0808','#0a0405');
+      // alarm chevrons top/bottom
+      for(let x=-2;x<66;x+=8){ p.triDn(x,0,3,'#3a0e0e'); p.triUp(x,61,3,'#3a0e0e'); }
+      p.textC(32,9,'GAME 7','#ff3b30',2,1);
+      p.glow(8,7,48,11,'#ff3b30',1);
+      p.crest(4,23,18,A); p.crest(42,23,18,H);
+      p.textC(32,28,'VS','#caa06a',1);
+      p.textC(32,46,'WIN OR','#ffd23f',1); p.textC(32,53,'GO HOME','#ffd23f',1);
+    } else {
+      p.gradV(0,0,64,64,'#15110a','#080705');
+      p.fillBlock(0,0,64,9,'#1f1809');
+      // crown / trophy motif (simple pixel)
+      p.triUp(28,2,3,'#ffd23f'); p.triUp(32,2,3,'#ffd23f'); p.triUp(36,2,3,'#ffd23f'); p.fillBlock(28,4,9,2,'#ffd23f');
+      p.textC(32,12,'NBA FINALS','#ffd23f',1);
+      p.crest(4,19,18,A); p.crest(42,19,18,H);
+      // series pips (best of 7, 4 to win)
+      const pip=(x,y,on,col)=>{ if(on){ p.diamond(x,y,3,col); } else { p.diamond(x,y,3,'#3a3320',false); } };
+      for(let i=0;i<4;i++) pip(7+i*8,44,i<d.away.w,A.glow);
+      for(let i=0;i<4;i++) pip(40+i*8,44,i<d.home.w,H.glow);
+      p.textC(32,52,d.series,'#e7ebef',1);
+      p.fillBlock(0,58,64,6,'#1f1809'); p.textC(32,59,d.game,'#caa06a',1);
+    }
+  }
+
+  // ---------- CONCEPT 6: TICKER ----------
+  drawTicker(p,d){
+    const T=this.T;
+    p.fillBlock(0,0,64,64,'#0a0c10');
+    p.gradV(0,0,64,8,'#171b22','#0c0f13'); p.hline(0,8,64,'#272c33');
+    p.fillBlock(2,2,3,3,'#ff3b30'); p.text(7,2,'NBA','#cdd3da',1);
+    p.textR(61,2,'TODAY','#8b9099',1);
+    const top=11, rh=13;
+    d.games.forEach((g,i)=>{
+      const y=top+i*rh;
+      if (i>0) p.hline(2,y-2,60,'#161c22');
+      const live = g.st!=='F', aLead = g.as>=g.hs;
+      p.fillBlock(0,y,2,9,live?'#7cdc3a':'#39424b');   // live(green)/final(gray) status rail
+      p.text(4,y,g.a,g.fav==='a'?'#ffd23f':'#cdd3da',1);
+      p.textR(30,y,String(g.as),aLead?'#ffffff':'#7a828b',1);
+      p.text(33,y,g.h,g.fav==='h'?'#ffd23f':'#cdd3da',1);
+      p.textR(60,y,String(g.hs),!aLead?'#ffffff':'#7a828b',1);
+    });
+  }
+
+  // ---------- CONCEPT 7: MOMENTUM (NBA lead tracker) ----------
+  drawMomentum(p,d){
+    const T=this.T, A=T[d.away.t], H=T[d.home.t];
+    p.fillBlock(0,0,64,64,'#0a0c10');
+    const cx0=2, cw=60, base=32, half=12;
+    // ---- PRE-GAME: empty tracker waiting to be written ----
+    if (d.state==='pre'){
+      p.gradV(0,0,64,8,'#171b22','#0c0f13'); p.hline(0,8,64,'#272c33');
+      p.text(3,2,'TODAY','#9aa3ad',1);
+      // matchup — crests with records beneath, AT between (no center collision)
+      p.crest(8,11,14,A); p.crest(42,11,14,H);
+      p.textC(15,27,d.away.rec,'#8b9099',1); p.textC(49,27,d.home.rec,'#8b9099',1);
+      p.textC(32,16,'AT','#5a626b',1);
+      // faint empty tracker baseline waiting to be written
+      for (let x=cx0;x<cx0+cw;x+=3) p.hline(x,38,2,'#222a32');
+      p.textC(32,41,'AWAITING TIP','#3f474f',1);
+      // readout: big tip time
+      p.fillBlock(0,46,64,18,'#0b0f13'); p.hline(0,46,64,'#1c2730');
+      p.text(4,49,'TIP-OFF','#5a626b',1);
+      p.textC(32,53,d.tip,'#ffffff',2,1);
+      return;
+    }
+    // ---- LIVE / FINAL ----
+    p.gradV(0,0,64,8,'#171b22','#0c0f13'); p.hline(0,8,64,'#272c33');
+    if (d.state==='final'){ p.textC(32,2,'FINAL','#cdd3da',1); }
+    else { p.rectOutline(1,1,5,5,'#ff3b30',55); p.fillBlock(2,2,3,3,'#ff3b30'); p.text(9,2,'Q'+d.q,'#cdd3da',1); p.textR(61,2,d.clock,'#ffd23f',1); }
+    // reference scores
+    p.fillBlock(2,10,3,5,A.fill); p.text(7,10,A.ab,'#cdd3da',1); p.text(18,10,String(d.away.score),'#ffffff',1);
+    p.fillBlock(59,10,3,5,H.fill); p.textR(57,10,H.ab,'#cdd3da',1); p.textR(46,10,String(d.home.score),'#ffffff',1);
+    const m=d.margins, n=m.length;
+    let mx=1; for (const v of m) mx=Math.max(mx,Math.abs(v));
+    const sc=half/mx;
+    // quarter dividers
+    for (let q=1;q<4;q++){ const x=cx0+Math.round(cw*q/4); p.vline(x,base-half,2*half,'#161d25'); }
+    // interpolated filled silhouette (translucent area + crisp lead line)
+    for (let px=0;px<cw;px++){
+      const t=px/(cw-1)*(n-1), i0=Math.floor(t), i1=Math.min(n-1,i0+1), f=t-i0;
+      const v=m[i0]+(m[i1]-m[i0])*f, h=Math.round(v*sc), x=cx0+px;
+      if (h>0){ for (let y=base-h;y<base;y++) p.set(x,y,A.fill,150); p.set(x,base-h,'#ffffff'); }
+      else if (h<0){ for (let y=base+1;y<=base-h;y++) p.set(x,y,H.fill,150); p.set(x,base-h,H.glow); }
+    }
+    // zero baseline
+    p.hline(cx0,base,cw,'#3a4048');
+    // lead-change ticks (gold notch below baseline at every crossing)
+    for (let i=1;i<n;i++){ if ((m[i-1]<0)!==(m[i]<0) && m[i-1]!==0 && m[i]!==0){ const fr=Math.abs(m[i-1])/(Math.abs(m[i-1])+Math.abs(m[i])); const gx=cx0+Math.round(cw*((i-1+fr)/(n-1))); p.vline(gx,base+1,3,'#ffd23f'); } }
+    // leading-edge marker
+    const last=m[n-1], lh=Math.round(last*sc), ex=cx0+cw-1, ey=base-lh;
+    p.glow(ex-1,ey-1,2,2,last>=0?'#ffffff':H.glow,2);
+    p.fillBlock(ex-1,ey-1,2,2,'#ffffff');
+    // readout
+    p.fillBlock(0,46,64,18,'#0b0f13'); p.hline(0,46,64,'#1c2730');
+    if (last===0){ p.textC(32,53,'ALL TIED','#cdd3da',2,1); }
+    else {
+      const lt=last>0?A:H, labTeam=last>0?A.ab:H.ab;
+      p.triUp(6,50,2,last>0?'#e7ebef':lt.glow);
+      p.text(11,49,labTeam,'#cdd3da',1);
+      if (d.run){ const rc=(T[d.runT]&&T[d.runT].glow)||'#ffd23f'; p.textR(61,49,d.run+' RUN',rc,1); }
+      else if (d.leadChanges){ p.textR(61,49,d.leadChanges+' LEAD CHG','#caa06a',1); }
+      p.textC(32,54,'+'+Math.abs(last),'#ffffff',2,1);
+    }
+  }
+
+  // ---------- CONCEPT 8: COURT (NBA shot chart) ----------
+  drawCourt(p,d){
+    const T=this.T, A=T[d.away.t], H=T[d.home.t], F=T[d.feat];
+    p.fillBlock(0,0,64,64,'#0a0c10');
+    // header score strip — chip+score at corners, status center (room for 3-digit)
+    p.gradV(0,0,64,9,'#171b22','#0c0f13'); p.hline(0,9,64,'#272c33');
+    p.fillBlock(2,2,3,5,A.fill); p.text(7,2,String(d.away.score),d.feat===d.away.t?'#ffffff':'#9aa3ad',1);
+    p.fillBlock(59,2,3,5,H.fill); p.textR(57,2,String(d.home.score),d.feat===d.home.t?'#ffffff':'#9aa3ad',1);
+    p.textC(32,2,d.state==='final'?'FINAL':('Q'+d.q),'#ffd23f',1);
+    // ---- court (hoop at top, arc bulging down) ----
+    const woodA='#12161c', woodB='#0c1015', lineC='#39424b';
+    p.gradV(2,11,60,47,woodA,woodB);
+    const hoopX=32, hoopY=15;
+    // backboard + rim
+    p.hline(28,12,9,lineC); p.ring(hoopX,hoopY,1,F.glow); 
+    // paint / key
+    p.rectOutline(26,12,13,26,lineC);
+    // free-throw circle
+    p.ring(hoopX,38,5,lineC);
+    // corner-3 verticals
+    p.vline(5,12,17,lineC); p.vline(58,12,17,lineC);
+    // 3pt arc (radius from hoop, lower hemisphere)
+    for (let a=22;a<=158;a+=3){ const r=30, x=Math.round(hoopX+r*Math.cos(a*Math.PI/180)), y=Math.round(hoopY+r*Math.sin(a*Math.PI/180)); p.set(x,y,lineC); }
+    // shots: made = bright team dot+glow, missed = dim hollow
+    d.shots.forEach(s=>{
+      if (s.m){ p.fillBlock(s.x-1,s.y-1,2,2,F.fill); p.set(s.x,s.y,'#ffffff'); }
+      else { p.rectOutline(s.x-1,s.y-1,2,2,'#4a525b'); }
+    });
+    // footer FG line
+    p.fillBlock(0,58,64,6,'#0b0f13'); p.hline(0,58,64,'#1c2730');
+    p.fillBlock(2,59,3,4,F.fill); p.text(7,59,F.ab,'#cdd3da',1);
+    p.text(17,59,d.fg,'#ffffff',1);
+    p.textR(61,59,d.hot,F.glow,1);
+  }
+
+  // ---------- CONCEPT 9: JUMBOTRON (tale of the tape) ----------
+  drawJumbo(p,d){
+    const T=this.T, A=T[d.away.t], H=T[d.home.t];
+    // tinted halves
+    p.gradH(0,0,32,64,A.fill,'#0a0c10');
+    p.gradH(32,0,32,64,'#0a0c10',H.fill);
+    p.fillBlock(0,0,32,64,'#0a0c10',150); p.fillBlock(32,0,32,64,'#0a0c10',150);
+    // center divider with glow
+    p.glow(31,0,2,64,'#ffd23f',2); p.fillBlock(31,0,2,64,'#ffd23f',90);
+    // corner team labels (chip + abbrev)
+    p.fillBlock(3,3,3,5,A.fill); p.text(8,3,A.ab,'#cdd3da',1);
+    p.fillBlock(58,3,3,5,H.fill); p.textR(56,3,H.ab,'#cdd3da',1);
+    // center status pill
+    p.fillBlock(24,2,16,8,'#0b0f13'); p.rectOutline(24,2,16,8,'#2a3038');
+    p.textC(32,4,d.state==='final'?'FIN':('Q'+d.q),'#ffd23f',1);
+    // big beveled scores centered in each half (handles 3-digit)
+    const sA=String(d.away.score), sH=String(d.home.score);
+    const bev=(cx,s)=>{ const wd=p.textW(s,2,1), x=Math.round(cx-wd/2); p.text(x+1,14,s,'#000000',2,1); p.text(x,13,s,'#ffffff',2,1); };
+    bev(16,sA); bev(47,sH);
+    // stat comparison rows — away value | label | home value
+    const rows=d.stats, top=26, rh=9;
+    rows.forEach((r,i)=>{
+      const y=top+i*rh;
+      const aw=parseFloat(r.a), hw=parseFloat(r.h), aWin=aw>hw, hWin=hw>aw;
+      p.textR(24,y,r.a,aWin?'#ffffff':'#7e8893',1);     // away value (left zone)
+      if (aWin) p.triL(7,y+2,2,A.glow);
+      p.textC(32,y,r.k,'#6b7480',1);                     // center label
+      p.text(40,y,r.h,hWin?'#ffffff':'#7e8893',1);       // home value (right zone)
+      if (hWin) p.triR(55,y+2,2,H.glow);
+    });
+  }
+
+  getCatalog(){
+    if (this._cat) return this._cat;
+    const A = (k,v)=>({k,v});
+    const raw = [
+      {
+        number:'01', name:'SCOREBUG', intent:'Team logo as the hero · one row per team · same skeleton for pre / live / final',
+        risk:'Silver-on-black crest (SA) blooms into the bezel — the 1px dark edge + corner cuts keep it from merging.',
+        annos:[
+          A('STATUS y0–7','full-width bar · LIVE dot @3–4,3–4 · period left x8 · clock right→x61 (gold)'),
+          A('CREST 18×18','hero logo slot @ x3 · away y11 · home y33 · accent cap + 2-letter fallback'),
+          A('SCORE','9px-tall numerals, right-aligned →x61 · away y14 · home y36'),
+          A('WINNER','gold crown badge on winning crest corner + 3px team rail @ x0 (final only)'),
+          A('CONTEXT y55–63','series · tip-off time · standout performer line'),
+        ],
+        frames:[
+          {id:'c1-pre', state:'PRE', tagBg:'#4aa3ff', caption:'Matchup · records · tip-off time', draw:'drawCrestRows',
+           data:{state:'pre', tip:'7:30', away:{t:'SA',rec:'62-20'}, home:{t:'NY',rec:'50-32'}, bottom:'FINALS G5 · 7:30'}},
+          {id:'c1-live', state:'LIVE', tagBg:'#ff5a4d', caption:'Score · period · clock', draw:'drawCrestRows',
+           data:{state:'live', q:'3', clock:'4:21', away:{t:'SA',score:78}, home:{t:'NY',score:81}, bottom:'FINALS G5 · 2-2'}},
+          {id:'c1-final', state:'FINAL', tagBg:'#7d8893', caption:'Result · winner rail · standout', draw:'drawCrestRows',
+           data:{state:'final', away:{t:'SA',score:112,win:true}, home:{t:'NY',score:105}, bottom:'WEMBY 38 PTS'}},
+        ],
+      },
+      {
+        number:'02', name:'DIAMOND', intent:'The iconic baseball glance — base/out/count diamond is the hero · MLB Dodgers',
+        risk:'Empty bases (gray outline) can vanish from across a room — keep the basepath lines so the diamond shape always reads.',
+        annos:[
+          A('STATUS y0–7','inning ▲/▼ half + number left · LIVE right'),
+          A('SCORES','mini crest + 15px numeral · away x2 · home x49'),
+          A('DIAMOND','center cx32 cy23 · bases r3 @ 2nd/1st/3rd · gold=runner, gray outline=empty · home plate white'),
+          A('B/S/O y37–43','balls(green) · strikes(gold) · outs(red) dot rows'),
+          A('SITUATION y45–63','pitcher line + at-bat batter'),
+        ],
+        frames:[
+          {id:'c2-pre', state:'PRE', tagBg:'#4aa3ff', caption:'Probable pitchers · first pitch time', draw:'drawDiamond',
+           data:{state:'pre', tip:'7:10', away:{t:'SF',pit:'WEBB',prec:'9-4'}, home:{t:'LAD',pit:'SNELL',prec:'11-3'}, bottom:'DODGER STADIUM'}},
+          {id:'c2-live', state:'LIVE', tagBg:'#ff5a4d', caption:'Bases loaded look · count · outs', draw:'drawDiamond',
+           data:{state:'live', half:'top', inning:'7TH', away:{t:'SF',score:2}, home:{t:'LAD',score:3}, bases:[true,true,false], balls:2, strikes:1, outs:1, pitcher:'SNELL', batter:'SOTO'}},
+          {id:'c2-final', state:'FINAL', tagBg:'#7d8893', caption:'Result · winning pitcher · big bat', draw:'drawDiamond',
+           data:{state:'final', away:{t:'SF',score:2}, home:{t:'LAD',score:5}, wp:'SNELL', bottom:'SOTO 2 HR'}},
+        ],
+      },
+      {
+        number:'03', name:'GRIDIRON', intent:'Down & distance + field position is the story · possession + red-zone alert · NFL Chargers',
+        risk:'The yellow first-down line and the ball marker can collide near midfield — ball uses a 3px brown chip with a light edge to stay distinct.',
+        annos:[
+          A('STATUS y0–7','quarter + clock · LIVE dot center'),
+          A('SCORES y11–24','crest + 15px score · possession dot under team with ball'),
+          A('FIELD y31–42','60px field, yard lines (mid brighter), team end zones, yellow 1st-down line, ball chip + possession chevron'),
+          A('DOWN&DIST y44–52','large "3RD & 7" — turns red in the red zone'),
+          A('BOTTOM y55–63','ball spot + play clock · or RED ZONE alert'),
+        ],
+        frames:[
+          {id:'c3-pre', state:'PRE', tagBg:'#4aa3ff', caption:'Records · kickoff time', draw:'drawGridiron',
+           data:{state:'pre', tip:'1:25', away:{t:'LAC',rec:'9-3'}, home:{t:'KC',rec:'10-2'}, bottom:'ARROWHEAD'}},
+          {id:'c3-live', state:'LIVE', tagBg:'#ff5a4d', caption:'3rd & 7 · ball on KC 32 · LAC ball', draw:'drawGridiron',
+           data:{state:'live', q:'3', clock:'8:42', away:{t:'LAC',score:17}, home:{t:'KC',score:20}, poss:'away', ball:68, fd:75, dd:'3RD & 7', spot:'KC 32', playclk:'14'}},
+          {id:'c3-rz', state:'LIVE', tagBg:'#ff8a3d', caption:'Variant — RED ZONE alert state', draw:'drawGridiron',
+           data:{state:'live', q:'4', clock:'2:05', away:{t:'LAC',score:24}, home:{t:'KC',score:20}, poss:'away', ball:94, fd:100, dd:'1ST & GL', spot:'KC 4', playclk:'09', redzone:true}},
+        ],
+      },
+      {
+        number:'04', name:'STAT LINE', intent:'Surface the players, not just the score — live scoring leaders with magnitude bars · NBA',
+        risk:'Long surnames overrun the stat column — names are truncated to ~6 glyphs (WEMBANYAMA → WEMBY) so the value never clips.',
+        annos:[
+          A('HEADER y0–10','compact score: away chip+abbrev+pts · clock center · home right'),
+          A('LABEL y14','"LIVE LEADERS" caption'),
+          A('LEADER ROW','team chip 5×5 + name + value (8px) + unit · magnitude bar y+7 (value/max)'),
+          A('THREE ROWS','y21 / y35 / y49 — mix PTS & REB leaders across both teams'),
+          A('—','swap for assists / efficiency by editing the leaders array'),
+        ],
+        frames:[
+          {id:'c4-live', state:'LIVE', tagBg:'#ff5a4d', caption:'Live scoring & rebounding leaders', draw:'drawStatLine',
+           data:{state:'live', period:'Q3', away:{t:'SA',ab:'SA',score:78}, home:{t:'NY',ab:'NY',score:81},
+             leaders:[{t:'SA',name:'WEMBY',val:25,unit:'PTS',max:35},{t:'NY',name:'BRUNSON',val:28,unit:'PTS',max:35},{t:'NY',name:'TOWNS',val:14,unit:'REB',max:18}]}},
+        ],
+      },
+      {
+        number:'05', name:'PRESTIGE', intent:'Playoff prestige — series win pips, gold treatment, elimination drama · a free two-poster rotation',
+        risk:'Gold-on-dark elimination type can bloom; the red alarm chevrons frame it so "GAME 7" stays the focal point, not the glow.',
+        annos:[
+          A('SERIES y0–11','crown motif + "NBA FINALS" gold header'),
+          A('CRESTS y19–37','both teams flanking center'),
+          A('PIPS y44','best-of-7: 4 diamond slots per team · filled=win (team glow) · empty=outline'),
+          A('ELIM VARIANT','red alarm bg + chevron border + "GAME 7" + "WIN OR GO HOME"'),
+          A('ROTATION','alternate the two posters between refreshes — free motion'),
+        ],
+        frames:[
+          {id:'c5-series', state:'SERIES', tagBg:'#ffd23f', caption:'Series spotlight — win pips', draw:'drawPrestige',
+           data:{variant:'series', away:{t:'SA',w:3}, home:{t:'NY',w:1}, series:'SA LEADS 3-1', game:'GAME 5'}},
+          {id:'c5-elim', state:'DRAMA', tagBg:'#ff5a4d', caption:'Elimination / Game 7 alternate', draw:'drawPrestige',
+           data:{variant:'elim', away:{t:'SA'}, home:{t:'NY'}}},
+        ],
+      },
+      {
+        number:'06', name:'TICKER', intent:'The whole slate at a glance — several games on one board · favorites flagged gold',
+        risk:'Four rows of 5px type is the legibility floor; chips + generous column gaps carry the scan when the room is far.',
+        annos:[
+          A('HEADER y0–7','league + LIVE dot · "TODAY" right'),
+          A('GAME ROW','away chip+abbrev+score · home chip+abbrev+score · status (green=live, gray=final)'),
+          A('FAVORITES','followed team abbrev rendered gold'),
+          A('FOUR GAMES','y11 · y24 · y37 · y50 — hairline divider between'),
+          A('—','scrolls/paginates across rotations for a full slate'),
+        ],
+        frames:[
+          {id:'c6-board', state:'BOARD', tagBg:'#7cdc3a', caption:'Multi-game slate', draw:'drawTicker',
+           data:{games:[
+             {a:'SA',as:78,h:'NY',hs:81,st:'Q3',fav:'a'},
+             {a:'LAL',as:99,h:'BOS',hs:102,st:'Q4'},
+             {a:'GSW',as:88,h:'DEN',hs:91,st:'F'},
+             {a:'MIA',as:70,h:'PHI',hs:65,st:'Q3'},
+           ]}},
+        ],
+      },
+      {
+        number:'07', name:'MOMENTUM', intent:'The story of the game, not just the score — a live lead-margin tracker · the basketball glance the flat bands never had · NBA',
+        risk:'Lead-change crossings can blur from across a room — the bold two-color fill, the white zero baseline, and a bright leading-edge dot keep who leads, by how much, right now unambiguous even when mid-game wiggles smear together.',
+        annos:[
+          A('STATUS y0–7','quarter + clock · LIVE / FINAL'),
+          A('SCORES y10–15','away chip+abbrev+score (left) · home (right) — the reference line'),
+          A('TRACKER y20–44','zero baseline y32 · away color fills ABOVE when away leads, home color BELOW · X = full game time · 3 quarter dividers · translucent area + crisp lead edge'),
+          A('LEAD EDGE','bright white dot + glow pinned to the current margin'),
+          A('LEAD-CHG TICKS','gold notch below the baseline at every crossing — counts the swings'),
+          A('PRE STATE','empty dashed baseline + records + big tip-off time — rotates through pre/live/final like the others'),
+          A('READOUT y46–63','▲ leading team + live run callout (e.g. 8-0 RUN) · big current margin'),
+          A('DATA','per-quarter linescores give a coarse curve for free; play-by-play scoring plays give the smooth line (one richer pull)'),
+        ],
+        frames:[
+          {id:'c7-pre', state:'PRE', tagBg:'#4aa3ff', caption:'Pre — empty tracker + tip-off time', draw:'drawMomentum',
+           data:{state:'pre', tip:'7:30', away:{t:'SA',rec:'62-20'}, home:{t:'NY',rec:'50-32'}}},
+          {id:'c7-close', state:'LIVE', tagBg:'#ff5a4d', caption:'Nailbiter — lead changes + a late run', draw:'drawMomentum',
+           data:{state:'live', q:'4', clock:'2:18', away:{t:'SA',score:96}, home:{t:'NY',score:99},
+             margins:[0,2,4,2,5,3,6,4,2,-1,-3,-1,2,4,1,-2,-4,-2,0,3,1,-2,-1,1,-1,-2,-1,-2,-3,-3], run:'6-0', runT:'NY'}},
+          {id:'c7-comeback', state:'LIVE', tagBg:'#ff5a4d', caption:'Comeback — away blew a 15-pt lead', draw:'drawMomentum',
+           data:{state:'live', q:'4', clock:'5:40', away:{t:'SA',score:88}, home:{t:'NY',score:94},
+             margins:[0,3,6,9,12,11,14,13,15,12,10,8,9,6,7,4,5,2,3,0,-2,-1,-3,-2,-4,-3,-5,-4,-5,-6], run:'8-0', runT:'NY'}},
+          {id:'c7-blowout', state:'FINAL', tagBg:'#7d8893', caption:'Blowout — one-sided wave, full arc', draw:'drawMomentum',
+           data:{state:'final', away:{t:'SA',score:124}, home:{t:'NY',score:102},
+             margins:[0,1,3,2,4,6,5,8,10,9,11,13,12,14,15,14,16,18,17,19,20,19,21,22,21,22,23,22,22,22]}},
+        ],
+      },
+      {
+        number:'08', name:'COURT', intent:'The spatial route — a pixel half-court shot chart · made/missed dots map where the points came from · NBA',
+        risk:'2px dots get sparse from across a room — made shots glow + carry a white core, the court lines stay dim so the markers pop; for a glance the FG line + HOT zone in the footer carry the story.',
+        annos:[
+          A('HEADER y0–8','away score · Q/FINAL center · home score · featured team in white'),
+          A('COURT y11–57','hoop+rim @ 32,15 · paint 26–38 · FT circle @32,38 r5 · corner-3 verticals · 3pt arc R30 from rim'),
+          A('SHOTS','made = featured-color dot + white core + glow · miss = dim hollow square · positions from play-by-play coords'),
+          A('FOOTER y58–63','featured team FG (12/24) + hottest zone (PAINT / WING / TOP)'),
+          A('DATA','shot coordinates need the play-by-play / summary endpoint — a richer pull than the scoreboard poll'),
+        ],
+        frames:[
+          {id:'c8-live', state:'LIVE', tagBg:'#ff5a4d', caption:'SA live shot chart — paint-heavy', draw:'drawCourt',
+           data:{state:'live', q:'3', feat:'SA', away:{t:'SA',score:78}, home:{t:'NY',score:81}, fg:'12/24', hot:'PAINT',
+             shots:[{x:32,y:20,m:true},{x:30,y:26,m:true},{x:34,y:24,m:false},{x:32,y:31,m:true},{x:27,y:22,m:true},{x:37,y:23,m:false},{x:14,y:30,m:true},{x:50,y:30,m:false},{x:20,y:40,m:false},{x:44,y:41,m:true},{x:32,y:48,m:false},{x:10,y:24,m:true},{x:54,y:25,m:false},{x:32,y:38,m:true}]}},
+          {id:'c8-final', state:'FINAL', tagBg:'#7d8893', caption:'NY final chart — perimeter shooting', draw:'drawCourt',
+           data:{state:'final', feat:'NY', away:{t:'SA',score:105}, home:{t:'NY',score:112}, fg:'41/88', hot:'WING',
+             shots:[{x:8,y:26,m:true},{x:56,y:26,m:true},{x:12,y:33,m:true},{x:52,y:34,m:false},{x:18,y:44,m:true},{x:46,y:45,m:true},{x:32,y:50,m:true},{x:24,y:47,m:false},{x:40,y:48,m:true},{x:32,y:20,m:false},{x:30,y:30,m:true},{x:34,y:32,m:false},{x:6,y:22,m:false},{x:58,y:23,m:true},{x:32,y:42,m:true}]}},
+        ],
+      },
+      {
+        number:'09', name:'JUMBOTRON', intent:'Bold tale-of-the-tape — the screen splits down the middle, each team owns a half, key stats compared head-to-head · NBA',
+        risk:'Center-aligned stat values can crowd the divider — values sit hard against the gold seam with the leading side in white + a chevron, the trailing side dimmed, so the winner of each row reads at a glance.',
+        annos:[
+          A('SPLIT','away tint left · home tint right · glowing gold divider @ x31'),
+          A('SCORES y3–17','crest + beveled jumbotron score per side (drop-shadow doubling)'),
+          A('STATUS PILL','center @ y20 — Q3 / FIN'),
+          A('STAT ROWS y30+','away value (right of center) · label (center) · home value · winner side white + ◀/▶ chevron in team color'),
+          A('STATS','FG% · 3PT · REB · AST — swap any team box-score field'),
+        ],
+        frames:[
+          {id:'c9-live', state:'LIVE', tagBg:'#ff5a4d', caption:'Head-to-head box score, live', draw:'drawJumbo',
+           data:{state:'live', q:'3', away:{t:'SA',score:78}, home:{t:'NY',score:81},
+             stats:[{k:'FG%',a:'48',h:'45'},{k:'3PT',a:'9',h:'12'},{k:'REB',a:'41',h:'38'},{k:'AST',a:'22',h:'19'}]}},
+          {id:'c9-final', state:'FINAL', tagBg:'#7d8893', caption:'Final box score split', draw:'drawJumbo',
+           data:{state:'final', away:{t:'SA',score:105}, home:{t:'NY',score:112},
+             stats:[{k:'FG%',a:'46',h:'51'},{k:'3PT',a:'11',h:'15'},{k:'REB',a:'44',h:'40'},{k:'AST',a:'25',h:'28'}]}},
+        ],
+      },
+    ];
+    const map={};
+    const concepts = raw.map(c=>({
+      number:c.number, name:c.name, intent:c.intent, risk:c.risk, annos:c.annos,
+      frames:c.frames.map(f=>{ map[f.id]={draw:f.draw,data:f.data}; return {id:f.id,state:f.state,caption:f.caption,tagBg:f.tagBg}; })
+    }));
+    this.frameMap=map; this._cat={concepts};
+    return this._cat;
+  }
+
+  renderVals(){
+    const cat=this.getCatalog();
+    return {
+      root:this.rootRef,
+      showGrid:this.props.showGrid ?? true,
+      concepts:cat.concepts,
+    };
+  }
+
+  componentDidMount(){ this.renderAll(); }
+  componentDidUpdate(){ this.renderAll(); }
+  renderAll(){
+    const root=this.rootRef && this.rootRef.current;
+    if (!root) return;
+    root.querySelectorAll('canvas[data-frame]').forEach(cv=>{
+      const f=this.frameMap[cv.getAttribute('data-frame')];
+      if (!f) return;
+      const ctx=cv.getContext('2d');
+      const p=this.makePix(64,64);
+      this[f.draw](p,f.data);
+      p.commit(ctx);
+    });
+  }
+}
+</script>
+</body>
+</html>

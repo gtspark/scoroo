@@ -1,0 +1,15 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Generated / runtime artifacts
+# debug/ = rendered preview PNGs; assets/logos/ = ESPN logo cache (re-downloaded)
+debug/
+assets/logos/
+*.log
+
+# Secrets (live in ~/.env.secrets, never in-repo)
+.env
+.env.secrets

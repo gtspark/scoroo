@@ -75,18 +75,18 @@ def _summary(kind, event_id, fetch_fn, ttl):
 
 
 def game_views(g):
-    """Frames for one game in its sport-appropriate view(s). NBA live/final
-    alternates momentum + jumbotron (lazily pulling margins + box-score stats)."""
+    """Frames for one game in its sport-appropriate view(s). Basketball (NBA +
+    WNBA) live -> momentum, final -> jumbotron (lazily pulling margins + stats)."""
     lg, eid, state = g["league"], g.get("event_id"), g["state"]
-    if lg == "nba":
+    if lg in ("nba", "wnba"):
         # live -> MOMENTUM (the in-progress flow); final -> JUMBOTRON tale-of-tape
         if state == "in":
             if eid:
-                g.update(_summary("margins", eid, lambda: espn.fetch_margins("nba", eid), 20))
+                g.update(_summary("margins", eid, lambda: espn.fetch_margins(lg, eid), 20))
             return [render.render_game(g, "momentum")]
         if state == "post":
             if eid:
-                g.update(_summary("stats", eid, lambda: espn.fetch_team_stats("nba", eid), 1800))
+                g.update(_summary("stats", eid, lambda: espn.fetch_team_stats(lg, eid), 1800))
             return [render.render_game(g, "jumbotape")]
         return [render.render_game(g, "momentum")]  # pre: upcoming card
     if lg == "mlb":

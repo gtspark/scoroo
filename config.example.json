@@ -1,7 +1,7 @@
 {
   "device_ip": "YOUR_PIXOO_IP",
-  "leagues": ["nba", "nfl", "mlb"],
-  "favorites": ["lakers", "49ers", "yankees"],
+  "leagues": ["nba", "wnba", "nfl", "mlb"],
+  "favorites": ["lakers", "aces", "49ers", "yankees"],
   "timezone": "America/New_York",
   "refresh_live": 8,
   "refresh_idle": 120,

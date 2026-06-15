@@ -51,6 +51,7 @@ BASE = "https://site.api.espn.com/apis/site/v2/sports/{path}/scoreboard"
 # league key -> (espn path, pretty label)
 LEAGUES = {
     "nba": ("basketball/nba", "NBA"),
+    "wnba": ("basketball/wnba", "WNBA"),
     "nfl": ("football/nfl", "NFL"),
     "mlb": ("baseball/mlb", "MLB"),
     "nhl": ("hockey/nhl", "NHL"),
@@ -91,7 +92,7 @@ def _fmt_status(league, status, comp):
             return (st.get("shortDetail") or "LIVE").upper(), state
         period = status.get("period", 0)
         clock = status.get("displayClock", "")
-        if league in ("nba", "nfl"):
+        if league in ("nba", "wnba", "nfl"):
             qlabel = f"Q{period}" if period <= 4 else ("OT" if period == 5 else f"{period - 4}OT")
         elif league == "nhl":
             qlabel = f"P{period}" if period <= 3 else "OT"
@@ -537,8 +538,9 @@ def fetch_all(leagues, favorites):
 
 # State rank: live first, then upcoming, then final.
 _STATE_RANK = {"in": 0, "pre": 1, "post": 2}
-# NBA is always prioritized over other leagues per the user's request.
-_LEAGUE_RANK = {"nba": 0, "nfl": 1, "mlb": 2, "nhl": 3, "epl": 4}
+# Basketball leads; NBA and WNBA tie so they interleave purely by game time
+# (the `start` tiebreaker in _sort_key), with no preference between them.
+_LEAGUE_RANK = {"nba": 0, "wnba": 0, "nfl": 1, "mlb": 2, "nhl": 3, "epl": 4}
 
 
 def _sort_key(g):

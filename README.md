@@ -31,7 +31,7 @@ Then each game routes to a layout by sport and state:
 
 | Sport | Live | Final | Pre |
 |-------|------|-------|-----|
-| **NBA** | `momentum` — lead-margin flow chart, current run, lead changes | `jumbotron` — zoomed-logo tale-of-the-tape + box-score stats | `momentum` card |
+| **NBA / WNBA** | `momentum` — lead-margin flow chart, current run, lead changes | `jumbotron` — zoomed-logo tale-of-the-tape + box-score stats | `momentum` card |
 | **MLB** | `diamond` — base/out/count, live at-bat | `mlbbox` — full line score (runs by inning + R/H/E) + pitching decisions + HR log | `diamond` — first-pitch time + date |
 | **NFL** | `gridiron` — field position, down & distance, red-zone | `gridiron` final | `gridiron` kickoff |
 
@@ -62,7 +62,7 @@ curl -s https://app.divoom-gz.com/Device/ReturnSameLANDevice
 | Key | Meaning |
 |-----|---------|
 | `device_ip` | Pixoo IP on your LAN |
-| `leagues` | any of `nba nfl mlb nhl epl` |
+| `leagues` | any of `nba wnba nfl mlb nhl epl` — add/remove to toggle a league on or off (NBA + WNBA share the basketball layouts and interleave by game time) |
 | `favorites` | team names/abbreviations to prioritize (e.g. `lakers`, `yankees`) |
 | `timezone` | IANA tz for displayed game times (e.g. `Asia/Tokyo`) |
 | `refresh_live` / `refresh_idle` / `refresh_empty` | adaptive poll intervals (s) — fast while live, slow when idle, very slow when nothing's on |

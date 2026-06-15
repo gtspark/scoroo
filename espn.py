@@ -496,8 +496,9 @@ def _parse_headline(headline):
 
 
 def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
-    """Tier 3: favorites' recent + upcoming games across a date window, sorted
-    by closeness to now (just-played / about-to-play first)."""
+    """Tier 3: ONE card per favorite team — its single most relevant game (live,
+    else the next upcoming, else the most recent), not its whole slate. Scans a
+    date window so just-finished and about-to-start games are both candidates."""
     now = datetime.now(_DISPLAY_TZ) if _DISPLAY_TZ else datetime.now()
     dates = f"{(now - timedelta(days=days_back)):%Y%m%d}-{(now + timedelta(days=days_fwd)):%Y%m%d}"
     out = []
@@ -509,16 +510,33 @@ def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
         except Exception as e:  # noqa: BLE001
             log.warning("range fetch %s failed: %s", lk, e)
     ref = now.timestamp()
-    out.sort(key=lambda g: abs(g["start"] - ref) if g["start"] else 1e18)
-    # one card per matchup — keep the instance closest to now (series collapse)
-    seen, deduped = set(), []
+
+    def rank(g):
+        # lower is better: live first, then soonest upcoming, then most recent past
+        s = g["start"] or 0
+        if g["state"] == "in":
+            return (0, 0.0)
+        if s >= ref:
+            return (1, s - ref)        # upcoming: soonest first
+        return (2, ref - s)            # past: most recent first
+
+    # pick the best-ranked game for each favorite team
+    best = {}
     for g in out:
-        key = tuple(sorted([g["away"]["abbr"], g["home"]["abbr"]]))
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(g)
-    return deduped
+        r = rank(g)
+        for side in (g["away"], g["home"]):
+            ab = side.get("abbr")
+            if side.get("fav") and (ab not in best or r < best[ab][0]):
+                best[ab] = (r, g)
+    # one game can be the pick for two favorites (they're playing each other) —
+    # dedup by event id, ordered live -> upcoming -> recent for display
+    chosen, seen = [], set()
+    for r, g in sorted(best.values(), key=lambda rg: rg[0]):
+        gid = g.get("event_id") or id(g)
+        if gid not in seen:
+            seen.add(gid)
+            chosen.append(g)
+    return chosen
 
 
 def fetch_all(leagues, favorites):

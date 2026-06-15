@@ -126,6 +126,22 @@ def _fmt_date(comp):
         return ""
 
 
+def _day_label(comp):
+    """Relative day for upcoming cards: 'TODAY' / 'TOMORROW' / else the date."""
+    try:
+        dt = datetime.fromisoformat(comp["date"].replace("Z", "+00:00"))
+        dt = dt.astimezone(_DISPLAY_TZ) if _DISPLAY_TZ else dt.astimezone()
+        today = (datetime.now(_DISPLAY_TZ) if _DISPLAY_TZ else datetime.now()).date()
+        days = (dt.date() - today).days
+        if days == 0:
+            return "TODAY"
+        if days == 1:
+            return "TOMORROW"
+        return dt.strftime("%b %d").upper().replace(" 0", " ")  # 'JUN 18'
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def fetch_league(league_key, favorites, timeout=12, dates=None):
     path, label = LEAGUES[league_key]
     url = BASE.format(path=path)
@@ -246,6 +262,7 @@ def _parse_event(league_key, label, event, favorites):
         "state": state,
         "status": status_txt,
         "date_short": _fmt_date(comp),
+        "day_label": _day_label(comp),
         "situation": situation,
         "half": half,
         "inning": inning,
@@ -496,9 +513,9 @@ def _parse_headline(headline):
 
 
 def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
-    """Tier 3: ONE card per favorite team — its single most relevant game (live,
-    else the next upcoming, else the most recent), not its whole slate. Scans a
-    date window so just-finished and about-to-start games are both candidates."""
+    """Tier 3: per favorite team, keep its NEXT game (soonest upcoming / live)
+    and its LAST game (most recent finished) — "next and last", not the whole
+    slate. Scans a date window so both are candidates."""
     now = datetime.now(_DISPLAY_TZ) if _DISPLAY_TZ else datetime.now()
     dates = f"{(now - timedelta(days=days_back)):%Y%m%d}-{(now + timedelta(days=days_fwd)):%Y%m%d}"
     out = []
@@ -520,18 +537,25 @@ def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
             return (1, s - ref)        # upcoming: soonest first
         return (2, ref - s)            # past: most recent first
 
-    # pick the best-ranked game for each favorite team
-    best = {}
+    # per favorite team: its NEXT game (soonest upcoming/live) + its LAST game
+    # (most recent finished)
+    nxt, last = {}, {}
     for g in out:
-        r = rank(g)
+        s = g["start"] or 0
+        upcoming = g["state"] == "in" or s >= ref
         for side in (g["away"], g["home"]):
-            ab = side.get("abbr")
-            if side.get("fav") and (ab not in best or r < best[ab][0]):
-                best[ab] = (r, g)
-    # one game can be the pick for two favorites (they're playing each other) —
-    # dedup by event id, ordered live -> upcoming -> recent for display
+            if not side.get("fav"):
+                continue
+            ab = side["abbr"]
+            if upcoming:
+                if ab not in nxt or s < (nxt[ab]["start"] or 1e18):
+                    nxt[ab] = g
+            elif ab not in last or s > (last[ab]["start"] or 0):
+                last[ab] = g
+    # a game can be two favorites' pick (they play each other) — dedup by event
+    # id; order next-then-recent for display
     chosen, seen = [], set()
-    for r, g in sorted(best.values(), key=lambda rg: rg[0]):
+    for g in sorted(list(nxt.values()) + list(last.values()), key=rank):
         gid = g.get("event_id") or id(g)
         if gid not in seen:
             seen.add(gid)

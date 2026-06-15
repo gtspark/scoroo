@@ -1079,7 +1079,7 @@ def layout_momentum(game):
     if state == "pre":
         vgrad(d, (0, 0, SIZE - 1, 7), (23, 27, 34), (12, 15, 19))
         d.line([0, 8, SIZE - 1, 8], fill=(39, 44, 51))
-        micro(d, 3, 2, "TODAY", (154, 163, 173), 1)
+        micro(d, 3, 2, game.get("day_label") or "TODAY", (154, 163, 173), 1)
         logo_tile(img, d, 8, 11, 14, a)
         logo_tile(img, d, 42, 11, 14, h)
         micro_c(d, 32, 16, "AT", (90, 98, 107), 1)

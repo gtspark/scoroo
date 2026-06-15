@@ -4,6 +4,7 @@ Public ESPN site API, no key required:
   https://site.api.espn.com/apis/site/v2/sports/<path>/scoreboard
 """
 import logging
+import unicodedata
 from datetime import datetime, timedelta
 
 import requests
@@ -14,6 +15,15 @@ except ImportError:  # pragma: no cover
     ZoneInfo = None
 
 log = logging.getLogger("espn")
+
+
+def _ascii(s):
+    """Fold accents to ASCII so the bitmap micro-font can render player names
+    (Hernández -> Hernandez); the font has no accented glyphs and would show '?'."""
+    if not s:
+        return s
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
 
 # Display timezone for start times. US leagues are conventionally listed in ET;
 # app.py can override via set_display_tz(). None => host local time.
@@ -201,8 +211,8 @@ def _parse_event(league_key, label, event, favorites):
         "strikes": sit.get("strikes") or 0,
         "outs": sit.get("outs") or 0,
         "bases": [bool(sit.get("onFirst")), bool(sit.get("onSecond")), bool(sit.get("onThird"))],
-        "batter": ((sit.get("batter") or {}).get("athlete", {}) or {}).get("shortName", ""),
-        "pitcher": ((sit.get("pitcher") or {}).get("athlete", {}) or {}).get("shortName", ""),
+        "batter": _ascii(((sit.get("batter") or {}).get("athlete", {}) or {}).get("shortName", "")),
+        "pitcher": _ascii(((sit.get("pitcher") or {}).get("athlete", {}) or {}).get("shortName", "")),
     }
     # NFL drive situation (only populated during live football). The yardLine
     # -> field-percent mapping is best-effort and needs a live game to verify.
@@ -320,7 +330,7 @@ def _last_name(short):
     """ESPN shortName 'M. Liberatore' -> 'LIBERATORE'."""
     if not short:
         return ""
-    return short.replace(".", "").split()[-1].upper()
+    return _ascii(short).replace(".", "").split()[-1].upper()
 
 
 def fetch_mlb_box(event_id, timeout=12):
@@ -444,7 +454,7 @@ def _extract_leaders(c):
             val = float(num) if num else 0.0
         except ValueError:
             val = 0.0
-        short = ath.get("shortName") or ath.get("displayName", "")
+        short = _ascii(ath.get("shortName") or ath.get("displayName", ""))
         if "point" in name:
             out.setdefault("PTS", (short, val))
         elif "rebound" in name:

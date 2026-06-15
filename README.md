@@ -8,6 +8,16 @@ position — then pushes them to the device over your LAN.
 
 No API keys, no cloud, no account. Just ESPN's public endpoints and a Pi.
 
+## Gallery
+
+Real frames rendered straight from ESPN data (shown 8× — the panel is 64×64).
+
+| | |
+|:--:|:--:|
+| <img src="docs/example-momentum.png" width="240"><br>**NBA live** · momentum (lead-margin flow) | <img src="docs/example-jumbotron.png" width="240"><br>**NBA final** · jumbotron (tale of the tape) |
+| <img src="docs/example-mlbbox.png" width="240"><br>**MLB final** · box score (line score + decisions) | <img src="docs/example-diamond-live.png" width="240"><br>**MLB live** · diamond (base/out/count) |
+| <img src="docs/example-diamond-pre.png" width="240"><br>**MLB pre** · diamond (first pitch) | <img src="docs/example-gridiron.png" width="240"><br>**NFL live** · gridiron (field position) |
+
 ## What it shows
 
 It picks what's on screen with a **tiered selector**, top-down each poll:

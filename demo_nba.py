@@ -7,7 +7,7 @@ import time
 
 import espn
 import render
-from pixoo import Pixoo
+from pixoo import Pixoo, device_ip
 
 espn.set_display_tz("Asia/Tokyo")
 g = espn.fetch_league("nba", ["lakers"])[0]        # real NY@SA teams/logos/leaders
@@ -17,7 +17,7 @@ live["status"] = "Q3 5:42"
 live["away"]["score"] = "71"
 live["home"]["score"] = "74"
 
-dev = Pixoo("YOUR_PIXOO_IP")
+dev = Pixoo(device_ip())
 layouts = ["scorebug", "statline"]
 HOLD = 8  # seconds per layout
 

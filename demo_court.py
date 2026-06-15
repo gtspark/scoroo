@@ -6,7 +6,7 @@ import time
 
 import espn
 import render
-from pixoo import Pixoo
+from pixoo import Pixoo, device_ip
 
 espn.set_display_tz("Asia/Tokyo")
 g = espn.fetch_league("nba", ["lakers"])[0]
@@ -22,7 +22,7 @@ for side, label in (("home", "SA"), ("away", "NY")):
     except Exception as e:  # noqa: BLE001
         print(f"shots fetch failed ({label}): {e}", flush=True)
 
-dev = Pixoo("YOUR_PIXOO_IP")
+dev = Pixoo(device_ip())
 HOLD = 10
 i = 0
 while FRAMES:

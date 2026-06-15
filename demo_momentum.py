@@ -7,7 +7,7 @@ import time
 
 import espn
 import render
-from pixoo import Pixoo
+from pixoo import Pixoo, device_ip
 
 espn.set_display_tz("Asia/Tokyo")
 g = espn.fetch_league("nba", ["lakers"])[0]
@@ -42,7 +42,7 @@ try:
 except Exception as e:  # noqa: BLE001
     print(f"real margins fetch failed: {e}", flush=True)
 
-dev = Pixoo("YOUR_PIXOO_IP")
+dev = Pixoo(device_ip())
 HOLD = 9
 i = 0
 while True:

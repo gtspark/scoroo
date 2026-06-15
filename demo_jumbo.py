@@ -7,7 +7,7 @@ import time
 
 import espn
 import render
-from pixoo import Pixoo
+from pixoo import Pixoo, device_ip
 
 espn.set_display_tz("Asia/Tokyo")
 g = espn.fetch_league("nba", ["lakers"])[0]   # real Game 5 (final, 94-90)
@@ -17,7 +17,7 @@ try:
 except Exception as e:  # noqa: BLE001
     print(f"stats fetch failed: {e}", flush=True)
 
-dev = Pixoo("YOUR_PIXOO_IP")
+dev = Pixoo(device_ip())
 ZOOMS = [120]   # locked: the tight crop reads as the team at a glance
 HOLD = 9
 

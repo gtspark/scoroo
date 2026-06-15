@@ -1,0 +1,17 @@
+{
+  "device_ip": "YOUR_PIXOO_IP",
+  "leagues": ["nba", "nfl", "mlb"],
+  "favorites": ["lakers", "49ers", "yankees"],
+  "timezone": "America/New_York",
+  "refresh_live": 8,
+  "refresh_idle": 120,
+  "refresh_empty": 1800,
+  "rotate_seconds": 7,
+  "max_cards": 8,
+  "brightness": {
+    "day": 90,
+    "night": 25,
+    "night_start_hour": 23,
+    "night_end_hour": 8
+  }
+}

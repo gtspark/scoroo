@@ -5,7 +5,9 @@ Talks directly to the device's HTTP image API (Draw/SendHttpGif). We push raw
 surprises on Python 3.13.
 """
 import base64
+import json
 import logging
+import os
 import time
 
 import requests
@@ -13,6 +15,14 @@ import requests
 log = logging.getLogger("pixoo")
 
 SIZE = 64
+
+
+def device_ip(path=None):
+    """Read the Pixoo's IP from config.json (single source of truth, so demos
+    don't hardcode it). Defaults to the config.json next to this module."""
+    path = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+    with open(path) as f:
+        return json.load(f)["device_ip"]
 
 
 class Pixoo:

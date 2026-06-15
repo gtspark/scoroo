@@ -45,10 +45,13 @@ only for the game actually on screen, and cached (20s live / 30min final).
 ```bash
 python3 -m venv venv
 ./venv/bin/pip install -r requirements.txt   # pillow, requests
-./venv/bin/python app.py                      # runs the loop
+cp config.example.json config.json            # then edit device_ip + favorites
+./venv/bin/python app.py                       # runs the loop
 ```
 
-Find your Pixoo's IP via Divoom LAN discovery:
+`config.json` is gitignored (it's your local device config) — copy it from
+`config.example.json` and set your Pixoo's IP, which you can find via Divoom LAN
+discovery:
 
 ```bash
 curl -s https://app.divoom-gz.com/Device/ReturnSameLANDevice

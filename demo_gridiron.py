@@ -7,7 +7,7 @@ import time
 
 import espn
 import render
-from pixoo import Pixoo
+from pixoo import Pixoo, device_ip
 
 espn.set_display_tz("Asia/Tokyo")
 games = espn.fetch_league("nfl", ["49ers"])
@@ -36,7 +36,7 @@ FRAMES = [
 LABELS = ["live 3rd&7", "RED ZONE", "final"]
 FRAMES[0]["away"]["record"] = "9-3"  # not used live, harmless
 
-dev = Pixoo("YOUR_PIXOO_IP")
+dev = Pixoo(device_ip())
 HOLD = 9
 i = 0
 while True:

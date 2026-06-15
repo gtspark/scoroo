@@ -13,3 +13,6 @@ assets/logos/
 # Secrets (live in ~/.env.secrets, never in-repo)
 .env
 .env.secrets
+
+# Local device config (copy from config.example.json)
+config.json

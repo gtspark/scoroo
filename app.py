@@ -116,7 +116,13 @@ def build_screens(cfg, games):
         if now - _TIER3_CACHE["ts"] > 600 or not _TIER3_CACHE["games"]:
             _TIER3_CACHE["games"] = espn.fetch_favorite_games(cfg["leagues"], cfg["favorites"])
             _TIER3_CACHE["ts"] = now
-        tier, why = _TIER3_CACHE["games"], "fav recent/upcoming"
+        # Overlay fresh state onto the cached games: today's games (from the live
+        # fetch_all) carry current state/scores, so a game cached as "pre" that
+        # has since started or finished renders correctly instead of stalling on
+        # its first-pitch card for up to the cache window.
+        fresh = {g.get("event_id"): g for g in games if g.get("event_id")}
+        tier = [fresh.get(g.get("event_id"), g) for g in _TIER3_CACHE["games"]]
+        why = "fav recent/upcoming"
     tier = tier[: cfg.get("max_cards", 8)]
     log.info("tier=%s (%d games)", why, len(tier))
     screens = []

@@ -356,8 +356,86 @@ def spl_walk(p, t, data=None):
                 _out_text(p, 32, 44, nm, '#cdd3da', 1)
 
 
-SPLASHES = {'hr': spl_hr, 'slam': spl_slam, 'walkoff': spl_walk}
-DURATIONS = {'hr': 3.0, 'slam': 3.2, 'walkoff': 3.0}
+def _player_seg(data, stat_col='#ffd23f'):
+    """One info line: player name (white) + key stat (distance/yards, colored)."""
+    name = (data.get('player') or '').upper()[:10] if data else ''
+    dist = str((data or {}).get('detail') or '')
+    return ([(name, '#ffffff')] if name else []) + ([(dist, stat_col)] if dist else [])
+
+
+def spl_buzzer(p, t, data=None):
+    """BUZZER-BEATER: 0:03->0:00 countdown, shot arcs to the rim, swish ripple,
+    horn flash + red border. Design splBuzzer (D=3.2s) + shooter name."""
+    D = 3.2
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#0a0c10')
+    hx, hy = 44, 16
+    p.hline(40, 11, 10, '#39424b')
+    p.ring(hx, hy, 1, '#ff7a3d')
+    for a in range(20, 161, 4):
+        p.set(round(hx + 24 * math.cos(a * math.pi / 180)),
+              round(hy + 24 * math.sin(a * math.pi / 180)), '#1d2630')
+    rem = max(0, 3 - int(lt / 0.4))
+    p.text(2, 2, ('0:0' + str(rem)) if lt < 1.3 else '0:00',
+           '#ffd23f' if lt < 1.3 else '#ff3b30', 1)
+    if lt < 1.25:
+        u = min(1, lt / 1.2)
+        x = 6 + (hx - 6) * u
+        y = 52 - (52 - hy) * u - 14 * math.sin(u * math.pi)
+        p.disc(int(x), int(y), 1, '#ff7a3d')
+    else:
+        st = lt - 1.25
+        _flash(p, st, 0.2)
+        r = 2
+        while r < 2 + st * 44:
+            p.ring(hx, hy + 2, int(r), '#ffffff', max(0, 160 - r * 16))
+            r += 4
+    if 1.25 < lt < 1.5:
+        p.fillBlock(0, 0, 64, 2, '#ff3b30')
+        p.fillBlock(0, 62, 64, 2, '#ff3b30')
+    if lt > 1.3:
+        if lt < 1.45:
+            _flash(p, lt - 1.3, 0.14)
+        _out_text(p, 32, 34, 'BUZZER', '#ffffff', 1)
+        _out_text(p, 32, 44, 'BEATER', '#ffd23f', 2)
+        _info_strip(p, [_player_seg(data, '#ff7a3d')], accent='#ff7a3d')
+
+
+def spl_three(p, t, data=None):
+    """DEEP THREE: deep launch, swish, giant 3 ripple. Design splThree (D=2.8s)
+    + shooter name + distance."""
+    D = 2.8
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#0b0a12')
+    hx, hy = 46, 14
+    p.hline(42, 9, 9, '#39424b')
+    p.ring(hx, hy, 1, '#ff7a3d')
+    for a in range(20, 161, 5):
+        p.set(round(hx + 30 * math.cos(a * math.pi / 180)),
+              round(hy + 30 * math.sin(a * math.pi / 180)), '#171b27')
+    if lt < 1.0:
+        u = min(1, lt / 0.95)
+        x = 4 + (hx - 4) * u
+        y = 44 - (44 - hy) * u - 16 * math.sin(u * math.pi)
+        p.disc(int(x), int(y), 1, '#ff7a3d')
+    else:
+        st = lt - 1.0
+        _flash(p, st, 0.18)
+        for k in range(3):
+            rr = st * 46 - k * 8
+            if 0 < rr < 40:
+                p.ring(32, 28, int(rr), '#4f7be0' if k % 2 else '#ffffff', max(0, 180 - rr * 4))
+    if lt > 1.05:
+        if lt < 1.2:
+            _flash(p, lt - 1.05, 0.12)
+        _out_text(p, 32, 18, '3', '#ffd23f', 5)
+        _out_text(p, 32, 50, 'DEEP THREE', '#ffffff', 1)
+        _info_strip(p, [_player_seg(data, '#4f7be0')], accent='#4f7be0')
+
+
+SPLASHES = {'hr': spl_hr, 'slam': spl_slam, 'walkoff': spl_walk,
+            'buzzer': spl_buzzer, 'three': spl_three}
+DURATIONS = {'hr': 3.0, 'slam': 3.2, 'walkoff': 3.0, 'buzzer': 3.2, 'three': 2.8}
 
 
 def animate(kind, data=None, fps=16, duration=None):

@@ -581,44 +581,53 @@ def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
 
 
 def detect_moment(game):
-    """Classify game['last_play'] into a big-moment Event dict, or None.
-    Phase 1: MLB home run (the splash that's ported). Structured to extend to the
-    rest of the locked taxonomy (slam/walk-off, buzzer/deep-3, TD/long-FG)."""
+    """Classify game['last_play'] into a big-moment Event dict, or None. Rides the
+    cheap live scoreboard (no extra call). MLB home run / grand slam / walk-off;
+    NBA-WNBA buzzer-beater / deep three. (NFL: Phase 2c.)"""
     lp = game.get("last_play") or {}
     ptype = lp.get("type") or ""
     text = lp.get("text", "")
     league = game.get("league")
 
-    def _scores():
-        try:
-            return int(game["away"].get("score") or 0), int(game["home"].get("score") or 0)
-        except ValueError:
-            return 0, 0
-
-    def _base(kind, dist_units="f(?:ee|oo)t", suffix="'"):
+    def ev(kind, detail=""):
         ath = (lp.get("athletes") or [{}])[0]
-        m = re.search(r"(\d+)\s*" + dist_units, text, re.I)
         return {
             "kind": kind, "league": league,
             "player": ath.get("name", ""), "number": ath.get("jersey", ""),
-            "detail": (m.group(1) + suffix) if m else "",
-            "runs": lp.get("score_value") or 0, "play_id": lp.get("id"),
+            "detail": detail, "runs": lp.get("score_value") or 0, "play_id": lp.get("id"),
             "away_abbr": game["away"].get("abbr", ""), "home_abbr": game["home"].get("abbr", ""),
             "score": (str(game["away"].get("score", "")), str(game["home"].get("score", ""))),
         }
 
     if league == "mlb":
-        is_hr = ptype == "home-run"
         sv = lp.get("score_value") or 0
         inn = int(re.sub(r"\D", "", game.get("inning", "")) or 0)
         bottom = game.get("half", "").startswith("bot")
-        a_sc, h_sc = _scores()
-        # walk-off: home scores the winning run in the bottom of the 9th+ (ends it)
-        walkoff = sv > 0 and bottom and inn >= 9 and h_sc > a_sc
-        if walkoff:
-            return _base("walkoff")
-        if is_hr:
-            return _base("slam" if sv >= 4 else "hr")
+        try:
+            a_sc, h_sc = int(game["away"].get("score") or 0), int(game["home"].get("score") or 0)
+        except ValueError:
+            a_sc = h_sc = 0
+        m = re.search(r"(\d+)\s*f(?:ee|oo)t", text, re.I)
+        dist = (m.group(1) + "'") if m else ""
+        if sv > 0 and bottom and inn >= 9 and h_sc > a_sc:   # walk-off
+            return ev("walkoff", dist)
+        if ptype == "home-run":
+            return ev("slam" if sv >= 4 else "hr", dist)
+        return None
+
+    if league in ("nba", "wnba"):
+        tl = text.lower()
+        made = "makes" in tl
+        m = re.search(r"(\d+)\s*-?\s*foot", tl)
+        ft = int(m.group(1)) if m else 0
+        dist = (str(ft) + "'") if ft else ""
+        clock = (game.get("status", "").split() or [""])[-1]
+        if made and clock in ("0:00", "0.0", "0"):           # buzzer-beater (best-effort)
+            return ev("buzzer", dist)
+        if made and "three point" in tl and ft >= 27:        # deep/clutch three
+            return ev("three", dist)
+        return None
+
     return None
 
 

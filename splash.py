@@ -433,9 +433,111 @@ def spl_three(p, t, data=None):
         _info_strip(p, [_player_seg(data, '#4f7be0')], accent='#4f7be0')
 
 
+def _band(p, y, segs, accent='#ffd23f'):
+    """One centered info line at row y on a dark backing band, for splashes that
+    leave room at the top or bottom rather than just the bottom."""
+    segs = [s for s in segs if s]
+    if not segs:
+        return
+    p.fillBlock(0, y - 1, 64, 8, '#05060a', 215)
+    p.hline(0, y - 1, 64, accent, 80)
+    _seg_line(p, 32, y + 1, segs)
+
+
+def spl_td(p, t, data=None):
+    """TOUCHDOWN: ball crosses the goal line, ref's arms up, confetti, +6.
+    Design splTD (D=3.0s) + scorer name + yards up top."""
+    D = 3.0
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#04060a')
+    p.fillBlock(0, 30, 64, 14, '#0c220f')                    # end zone
+    for y in range(30, 44):
+        p.set(56, y, '#ffd23f')
+    for x in range(58, 64, 2):
+        for y in range(30, 44):
+            p.set(x, y, '#16331a')
+    if lt < 1.0:
+        u = min(1, lt / 0.9)
+        x = 6 + 52 * u; y = 37
+        p.fillBlock(int(x - 1), y - 2, 3, 4, '#0a84c6')
+        p.rectOutline(int(x - 1), y - 2, 3, 4, '#ffc20e')
+    if lt > 0.9:
+        st = lt - 0.9
+        if st < 0.16:
+            _flash(p, st, 0.16)
+        p.fillBlock(26, 4, 2, 10, '#e7ebef')                 # ref arms up
+        p.fillBlock(36, 4, 2, 10, '#e7ebef')
+        _confetti(p, st, ['#ffd23f', '#ff5a4d', '#4f7be0', '#ffffff', '#2fbf4a'])
+        _band(p, 19, _player_seg(data, '#2fbf4a'), accent='#2fbf4a')
+        _out_text(p, 32, 30, 'TOUCHDOWN', '#ffffff', 1)
+        _out_text(p, 32, 42, '+6', '#ffd23f', 3)
+
+
+def spl_pick(p, t, data=None):
+    """PICK SIX: pass intercepted, returned the other way, bursts. Design splPick
+    (D=3.4s) + the defender's name up top."""
+    D = 3.4
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#08040a')
+    if lt < 0.6:
+        u = lt / 0.55
+        x = 8 + 40 * u; y = 24 - 8 * math.sin(u * math.pi)
+        p.fillBlock(int(x), int(y), 2, 1, '#c98a4a')
+    if 0.5 < lt < 0.95:
+        if lt < 0.66:
+            _flash(p, lt - 0.5, 0.16)
+        _out_text(p, 46, 16, 'INT!', '#ff3b30', 1)
+    if 0.7 < lt < 1.7:
+        u = (lt - 0.7) / 0.95
+        x = 54 - 46 * u; y = 38
+        for k in range(1, 5):
+            p.set(int(x + k), y, '#243a6b', 160 - k * 30)
+        p.fillBlock(int(x - 1), y - 2, 3, 4, '#4f7be0')
+        p.rectOutline(int(x - 1), y - 2, 3, 4, '#a8c4ff')
+    if lt > 1.6:
+        st = lt - 1.6
+        if st < 0.16:
+            _flash(p, st, 0.16)
+        _burst(p, 16, 16, st - 0.1, ['#4f7be0', '#ffffff'], 14, 24)
+        _burst(p, 48, 14, st - 0.4, ['#ffd23f', '#ffffff'], 14, 24)
+        _band(p, 3, _player_seg(data, '#4f7be0'), accent='#4f7be0')
+        _out_text(p, 32, 28, 'PICK', '#ffffff', 2)
+        _out_text(p, 32, 44, 'SIX', '#ffd23f', 3)
+
+
+def spl_fg(p, t, data=None):
+    """FIELD GOAL: ball through the uprights, GOOD, game winner. Design splFG
+    (D=3.0s) + kicker name + distance at the bottom."""
+    D = 3.0
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#05080d')
+    gx, gy = 32, 11
+    p.vline(gx, gy, 9, '#f4d03f')
+    p.vline(gx - 9, gy - 7, 9, '#f4d03f')
+    p.vline(gx + 9, gy - 7, 9, '#f4d03f')
+    p.hline(gx - 9, gy, 19, '#f4d03f')
+    for x in range(2, 62, 3):
+        j = abs(math.sin(t * 5 + x)) * 2 if lt > 1.0 else 0
+        p.set(x, int(60 - j), '#1b2230')
+    if lt < 1.05:
+        u = min(1, lt / 1.0)
+        x = 22 + (gx + 2 - 22) * u
+        y = 56 - 54 * u - 6 * math.sin(u * math.pi)
+        p.disc(int(x), int(y), 1, '#e7ebef')
+    else:
+        st = lt - 1.05
+        if st < 0.16:
+            _flash(p, st, 0.16)
+        _out_text(p, 32, 28, 'GOOD', '#2fbf4a', 3)
+        _out_text(p, 32, 50, 'GAME WINNER', '#ffd23f', 1)
+        _band(p, 57, _player_seg(data), accent='#f4d03f')
+
+
 SPLASHES = {'hr': spl_hr, 'slam': spl_slam, 'walkoff': spl_walk,
-            'buzzer': spl_buzzer, 'three': spl_three}
-DURATIONS = {'hr': 3.0, 'slam': 3.2, 'walkoff': 3.0, 'buzzer': 3.2, 'three': 2.8}
+            'buzzer': spl_buzzer, 'three': spl_three,
+            'td': spl_td, 'picksix': spl_pick, 'fg': spl_fg}
+DURATIONS = {'hr': 3.0, 'slam': 3.2, 'walkoff': 3.0, 'buzzer': 3.2, 'three': 2.8,
+             'td': 3.0, 'picksix': 3.4, 'fg': 3.0}
 
 
 def animate(kind, data=None, fps=16, duration=None):

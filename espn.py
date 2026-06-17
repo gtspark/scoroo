@@ -628,6 +628,18 @@ def detect_moment(game):
             return ev("three", dist)
         return None
 
+    if league == "nfl":
+        tl = text.lower()
+        ym = re.search(r"(\d+)\s*yard", tl)
+        yds = (ym.group(1) + " YD") if ym else ""
+        if "touchdown" in tl:
+            return ev("picksix" if "intercept" in tl else "td", yds)
+        if ptype == "field-goal-good" or "field goal is good" in tl:
+            fg = re.search(r"(\d+)\s*yard field goal", tl)
+            if fg and int(fg.group(1)) >= 50:                # long / game-winning
+                return ev("fg", fg.group(1) + " YD")
+        return None
+
     return None
 
 

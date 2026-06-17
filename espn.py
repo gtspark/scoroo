@@ -586,22 +586,39 @@ def detect_moment(game):
     rest of the locked taxonomy (slam/walk-off, buzzer/deep-3, TD/long-FG)."""
     lp = game.get("last_play") or {}
     ptype = lp.get("type") or ""
+    text = lp.get("text", "")
     league = game.get("league")
-    if league == "mlb" and ptype == "home-run":
+
+    def _scores():
+        try:
+            return int(game["away"].get("score") or 0), int(game["home"].get("score") or 0)
+        except ValueError:
+            return 0, 0
+
+    def _base(kind, dist_units="f(?:ee|oo)t", suffix="'"):
         ath = (lp.get("athletes") or [{}])[0]
-        m = re.search(r"(\d+)\s*f(?:ee|oo)t", lp.get("text", ""), re.I)
+        m = re.search(r"(\d+)\s*" + dist_units, text, re.I)
         return {
-            "kind": "hr",
-            "league": league,
-            "player": ath.get("name", ""),
-            "number": ath.get("jersey", ""),
-            "detail": (m.group(1) + "'") if m else "",   # e.g. "417'"
-            "runs": lp.get("score_value") or 1,
-            "play_id": lp.get("id"),
-            "away_abbr": game["away"].get("abbr", ""),
-            "home_abbr": game["home"].get("abbr", ""),
+            "kind": kind, "league": league,
+            "player": ath.get("name", ""), "number": ath.get("jersey", ""),
+            "detail": (m.group(1) + suffix) if m else "",
+            "runs": lp.get("score_value") or 0, "play_id": lp.get("id"),
+            "away_abbr": game["away"].get("abbr", ""), "home_abbr": game["home"].get("abbr", ""),
             "score": (str(game["away"].get("score", "")), str(game["home"].get("score", ""))),
         }
+
+    if league == "mlb":
+        is_hr = ptype == "home-run"
+        sv = lp.get("score_value") or 0
+        inn = int(re.sub(r"\D", "", game.get("inning", "")) or 0)
+        bottom = game.get("half", "").startswith("bot")
+        a_sc, h_sc = _scores()
+        # walk-off: home scores the winning run in the bottom of the 9th+ (ends it)
+        walkoff = sv > 0 and bottom and inn >= 9 and h_sc > a_sc
+        if walkoff:
+            return _base("walkoff")
+        if is_hr:
+            return _base("slam" if sv >= 4 else "hr")
     return None
 
 

@@ -209,6 +209,18 @@ def _seg_line(p, cx, y, segs):
         x += w + 4
 
 
+def _confetti(p, ts, pal):
+    if ts < 0:
+        return
+    for i in range(26):
+        x = _rnd(i) * 64 + ts * 9 * (_rnd(i + 9) - 0.5)
+        x = ((x % 64) + 64) % 64
+        y = (_rnd(i + 3) * 16 + ts * 42) % 70
+        if y < 5 or y > 63:
+            continue
+        p.fillBlock(int(x), int(y), 1, 2, pal[i % len(pal)])
+
+
 def _info_strip(p, lines, accent='#ffd23f'):
     """Bottom data strip: 1-2 short centered lines of (text,color) segments
     (player / number / distance), drawn under the big celebration text."""
@@ -273,8 +285,78 @@ def spl_hr(p, t, data=None):
         _info_strip(p, _hr_lines(data))
 
 
-SPLASHES = {'hr': spl_hr}
-DURATIONS = {'hr': 3.0}
+def spl_slam(p, t, data=None):
+    """GRAND SLAM: bases light 1-2-3-4 as the runner circles, '+4', finale burst.
+    Design splSlam (D=3.2s) + the batter's name up top."""
+    D = 3.2
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#0a0810')
+    cx, cy, r = 32, 22, 11
+    home = [cx, cy + r]; first = [cx + r, cy]; second = [cx, cy - r]; third = [cx - r, cy]
+    pts = [home, first, second, third]
+    for i in range(4):
+        a, b = pts[i], pts[(i + 1) % 4]
+        p.line(a[0], a[1], b[0], b[1], '#33281a')
+    legs = min(1, lt / 1.4) * 4
+    for i in range(4):
+        b = pts[(i + 1) % 4]
+        if legs > i:
+            p.diamond(b[0], b[1], 2, '#ffd23f')
+        else:
+            p.diamond(b[0], b[1], 2, '#4a4030', False)
+    p.diamond(home[0], home[1], 2, '#ffffff')
+    if lt < 1.4:
+        li = int(legs) % 4
+        f = legs - int(legs)
+        a, b = pts[li], pts[(li + 1) % 4]
+        p.disc(int(a[0] + (b[0] - a[0]) * f), int(a[1] + (b[1] - a[1]) * f), 1, '#ffffff')
+    p.text(54, 3, '+4', '#ffd23f', 1)
+    _burst(p, 16, 14, lt - 1.4, ['#ffd23f', '#ffffff'], 16, 26)
+    _burst(p, 48, 14, lt - 1.7, ['#ff5a4d', '#ffd23f'], 16, 26)
+    _burst(p, 32, 10, lt - 2.0, ['#4f7be0', '#ffffff', '#ffd23f'], 18, 30)
+    if data:
+        nm = (data.get('player') or '').upper()[:9]
+        if nm:
+            _out_text(p, 22, 3, nm, '#cdd3da', 1)
+    if lt > 1.4:
+        if lt < 1.55:
+            _flash(p, lt - 1.4, 0.14)
+        _out_text(p, 32, 40, 'GRAND', '#ffffff', 1)
+        _out_text(p, 32, 48, 'SLAM', '#ffd23f', 2)
+
+
+def spl_walk(p, t, data=None):
+    """WALK-OFF WIN: runner touches home, crowd line erupts, confetti. Design
+    splWalk (D=3.0s) + the walk-off hero's name."""
+    D = 3.0
+    lt = t % D
+    p.fillBlock(0, 0, 64, 64, '#0a0810')
+    hx, hy = 32, 46
+    p.diamond(hx, hy, 3, '#e7ebef')
+    if lt < 1.0:
+        u = min(1, lt / 0.9)
+        x = 58 - (58 - hx) * u; y = hy - 1
+        p.fillBlock(int(x - 1), int(y - 3), 3, 4, '#1565a6')
+        p.rectOutline(int(x - 1), int(y - 3), 3, 4, '#5aa2dd')
+    if lt > 0.9:
+        st = lt - 0.9
+        if st < 0.18:
+            _flash(p, st, 0.18)
+        for x in range(2, 62, 3):
+            j = abs(math.sin(t * 5 + x)) * 3
+            p.set(x, int(57 - j), '#243a6b')
+            p.set(x, int(61 - j), '#1565a6')
+        _confetti(p, st, ['#1565a6', '#5aa2dd', '#ffffff', '#ffd23f'])
+        _out_text(p, 32, 15, 'WALK-OFF', '#ffffff', 1)
+        _out_text(p, 32, 25, 'WIN', '#ffd23f', 3)
+        if data:
+            nm = (data.get('player') or '').upper()[:11]
+            if nm:
+                _out_text(p, 32, 44, nm, '#cdd3da', 1)
+
+
+SPLASHES = {'hr': spl_hr, 'slam': spl_slam, 'walkoff': spl_walk}
+DURATIONS = {'hr': 3.0, 'slam': 3.2, 'walkoff': 3.0}
 
 
 def animate(kind, data=None, fps=16, duration=None):

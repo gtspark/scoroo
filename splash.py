@@ -291,7 +291,7 @@ def spl_slam(p, t, data=None):
     D = 3.2
     lt = t % D
     p.fillBlock(0, 0, 64, 64, '#0a0810')
-    cx, cy, r = 32, 22, 11
+    cx, cy, r = 32, 24, 11      # diamond dropped 2px to clear the batter name
     home = [cx, cy + r]; first = [cx + r, cy]; second = [cx, cy - r]; third = [cx - r, cy]
     pts = [home, first, second, third]
     for i in range(4):
@@ -352,6 +352,7 @@ def spl_walk(p, t, data=None):
         if data:
             nm = (data.get('player') or '').upper()[:11]
             if nm:
+                p.fillBlock(0, 43, 64, 7, '#0a0810', 210)   # clear confetti behind the name
                 _out_text(p, 32, 44, nm, '#cdd3da', 1)
 
 

@@ -70,6 +70,37 @@ class Pixoo:
         pct = max(0, min(100, int(pct)))
         self._command({"Command": "Channel/SetBrightness", "Brightness": pct})
 
+    def _frame_b64(self, img):
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+        if img.size != (SIZE, SIZE):
+            img = img.resize((SIZE, SIZE))
+        return base64.b64encode(img.tobytes()).decode("ascii")
+
+    def push_animation(self, frames, speed_ms=80):
+        """Upload a multi-frame animation as ONE device-side GIF and let the
+        Pixoo play it from its own memory. SendHttpGif with PicNum>1 buffers all
+        frames under a single PicID; internal playback isn't bound by the ~1fps
+        HTTP push limit, so this is the smooth path. Frames upload sequentially
+        (the slow part), then the device loops them at `speed_ms` per frame."""
+        frames = list(frames)
+        n = len(frames)
+        if not n:
+            return
+        self.reset_counter()          # clear the buffer + start a fresh PicID
+        pid = self._pic_id
+        for i, img in enumerate(frames):
+            self._command({
+                "Command": "Draw/SendHttpGif",
+                "PicNum": n,
+                "PicWidth": SIZE,
+                "PicOffset": i,
+                "PicID": pid,
+                "PicSpeed": int(speed_ms),
+                "PicData": self._frame_b64(img),
+            })
+        self._pic_id = pid + 1
+
     def push(self, img):
         """Push a Pillow image (will be coerced to 64x64 RGB) to the screen."""
         if img.mode != "RGB":

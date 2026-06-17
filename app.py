@@ -22,6 +22,7 @@ except ImportError:
 
 import espn
 import render
+import splash
 from pixoo import Pixoo
 
 logging.basicConfig(
@@ -57,6 +58,51 @@ def target_brightness(cfg):
 # --- lazy play-by-play cache: only pulled for games actually on screen ---
 _SUMMARY_CACHE = {}                      # (kind, event_id) -> (ts, data)
 _TIER3_CACHE = {"ts": 0.0, "games": []}  # favorites' recent/upcoming (slow-changing)
+
+# --- big-moment alerts: fire a splash when a live on-screen game has one ---
+_SEEN_PLAYS = {}    # event_id -> last last_play id we've processed (seed on first sight)
+ALERT_FPS = 16      # on-device playback smoothness
+ALERT_LOOP_HOLD = 3.0   # seconds the animation loops (~one full play) before freezing
+ALERT_FREEZE_HOLD = 3.5  # seconds to hold the final frame (readable HOME RUN + info)
+
+
+def detect_alerts(cfg, games):
+    """Big-moment events for live favorite/finals games (the only ones shown).
+    Seeds seen-ids on first sight so a play from before startup never replays;
+    fires once per new play id (detect_moment filters to the real moments)."""
+    if not cfg.get("alerts", {}).get("enabled", True):
+        return []
+    events = []
+    for g in games:
+        if g.get("state") != "in" or not (g.get("fav") or g.get("is_finals")):
+            continue
+        eid, pid = g.get("event_id"), (g.get("last_play") or {}).get("id")
+        if not eid or not pid:
+            continue
+        prev = _SEEN_PLAYS.get(eid)
+        _SEEN_PLAYS[eid] = pid
+        if prev is None or pid == prev:        # first sight / no new play
+            continue
+        ev = espn.detect_moment(g)
+        if ev and ev["kind"] in splash.SPLASHES:
+            events.append(ev)
+    return events
+
+
+def play_alert(dev, ev):
+    """Play the looping celebration, then freeze on its final frame (which holds
+    HOME RUN + player/number/distance) so it stays readable. The freeze is a
+    single push of the last frame — it doesn't add to the GIF upload."""
+    log.info("ALERT %s: %s #%s %s (%s)", ev["kind"], ev.get("player"),
+             ev.get("number"), ev.get("detail"), ev.get("score"))
+    try:
+        frames, speed = splash.animate(ev["kind"], ev, fps=ALERT_FPS)
+        dev.push_animation(frames, speed_ms=speed)
+        time.sleep(ALERT_LOOP_HOLD)
+        dev.push(frames[-1])               # freeze on the last frame
+        time.sleep(ALERT_FREEZE_HOLD)
+    except Exception as e:  # noqa: BLE001
+        log.warning("alert playback failed: %s", e)
 
 
 def _summary(kind, event_id, fetch_fn, ttl):
@@ -164,6 +210,12 @@ def main():
                 cur_refresh = r_live if live else (r_idle if games else r_empty)
                 log.info("refreshed: %d games (%d live) -> %d screens; next poll in %ds",
                          len(games), live, len(screens), cur_refresh)
+                # big-moment splashes for live on-screen (favorite/finals) games
+                alerts = detect_alerts(cfg, games)
+                for ev in alerts:
+                    play_alert(dev, ev)
+                if alerts:
+                    last_fetch, idx = 0.0, 0   # refresh now so the new score shows
             except Exception as e:  # noqa: BLE001
                 log.warning("fetch failed: %s", e)
                 cur_refresh = min(cur_refresh, 30)  # retry sooner after a failure

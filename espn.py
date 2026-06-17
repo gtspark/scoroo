@@ -4,6 +4,7 @@ Public ESPN site API, no key required:
   https://site.api.espn.com/apis/site/v2/sports/<path>/scoreboard
 """
 import logging
+import re
 import unicodedata
 from datetime import datetime, timedelta
 
@@ -255,6 +256,21 @@ def _parse_event(league_key, label, event, favorites):
     half = parts[0].lower() if parts else ""
     inning = parts[1] if len(parts) > 1 else (parts[0] if parts else "")
 
+    # last play (live only) — drives big-moment splash detection. Cheap: it's
+    # already in the scoreboard poll, no extra call. type.type is the trigger.
+    lp = sit.get("lastPlay") or {}
+    lp_team = lp.get("team")
+    last_play = {
+        "id": lp.get("id"),
+        "type": ((lp.get("type") or {}).get("type") or ""),
+        "text": lp.get("text") or "",
+        "score_value": lp.get("scoreValue") or 0,
+        "team": str(lp_team.get("id") if isinstance(lp_team, dict) else (lp_team or "")),
+        "athletes": [{"name": _ascii(a.get("shortName") or a.get("displayName") or ""),
+                      "jersey": str(a.get("jersey") or "")}
+                     for a in (lp.get("athletesInvolved") or [])],
+    } if lp else {}
+
     return {
         "league": league_key,
         "event_id": event.get("id"),
@@ -264,6 +280,7 @@ def _parse_event(league_key, label, event, favorites):
         "date_short": _fmt_date(comp),
         "day_label": _day_label(comp),
         "situation": situation,
+        "last_play": last_play,
         "half": half,
         "inning": inning,
         "home": teams["home"],
@@ -561,6 +578,31 @@ def fetch_favorite_games(leagues, favorites, days_back=3, days_fwd=10):
             seen.add(gid)
             chosen.append(g)
     return chosen
+
+
+def detect_moment(game):
+    """Classify game['last_play'] into a big-moment Event dict, or None.
+    Phase 1: MLB home run (the splash that's ported). Structured to extend to the
+    rest of the locked taxonomy (slam/walk-off, buzzer/deep-3, TD/long-FG)."""
+    lp = game.get("last_play") or {}
+    ptype = lp.get("type") or ""
+    league = game.get("league")
+    if league == "mlb" and ptype == "home-run":
+        ath = (lp.get("athletes") or [{}])[0]
+        m = re.search(r"(\d+)\s*f(?:ee|oo)t", lp.get("text", ""), re.I)
+        return {
+            "kind": "hr",
+            "league": league,
+            "player": ath.get("name", ""),
+            "number": ath.get("jersey", ""),
+            "detail": (m.group(1) + "'") if m else "",   # e.g. "417'"
+            "runs": lp.get("score_value") or 1,
+            "play_id": lp.get("id"),
+            "away_abbr": game["away"].get("abbr", ""),
+            "home_abbr": game["home"].get("abbr", ""),
+            "score": (str(game["away"].get("score", "")), str(game["home"].get("score", ""))),
+        }
+    return None
 
 
 def fetch_all(leagues, favorites):

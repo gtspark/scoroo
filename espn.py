@@ -607,11 +607,15 @@ def detect_moment(game):
             a_sc, h_sc = int(game["away"].get("score") or 0), int(game["home"].get("score") or 0)
         except ValueError:
             a_sc = h_sc = 0
+        tl = text.lower()
+        # the live scoreboard tags a homer's lastPlay as "play-result" (with the
+        # descriptive text), NOT type "home-run" — so match on the text.
+        is_hr = "homer" in tl or "home run" in tl or ptype == "home-run"
         m = re.search(r"(\d+)\s*f(?:ee|oo)t", text, re.I)
         dist = (m.group(1) + "'") if m else ""
         if sv > 0 and bottom and inn >= 9 and h_sc > a_sc:   # walk-off
             return ev("walkoff", dist)
-        if ptype == "home-run":
+        if is_hr:
             return ev("slam" if sv >= 4 else "hr", dist)
         return None
 
